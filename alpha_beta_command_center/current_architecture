@@ -1,0 +1,25 @@
+// Current Technical Architecture
+digraph {
+	A [label="Client Browser
+(index.html)"]
+	B [label="Express Server
+(server.js)"]
+	C [label="PowerShell Script
+(list_generation_power_shell.ps1)"]
+	D [label="Secret Server API
+(OAuth2)"]
+	E [label="Snowflake via ODBC"]
+	F [label="Content Generation Module
+(Docxtemplater, Cheerio)"]
+	G [label="Database / Snowflake Logs"]
+	H [label="OneDrive
+(File Export)"]
+	A -> B [label="Submits form"]
+	B -> C [label="POST /run-powershell"]
+	C -> D [label="OAuth2 Authentication"]
+	C -> E [label="Execute Stored Proc"]
+	B -> F [label="POST /generate-content"]
+	F -> E [label="Query Snowflake"]
+	B -> G [label="GET /get-lists"]
+	B -> H [label="Export results"]
+}

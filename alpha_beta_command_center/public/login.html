@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Alpha/Beta Command Center</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        /* --- Styles remain the same --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background-color: #f9f9f9; color: #333; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding-top: 20px; }
+        a { text-decoration: none; color: #4e2d82; } a:hover{ text-decoration: underline;}
+
+        /* Header */
+        .header { background: #4e2d82; color: #fff; padding: 15px 20px; text-align: center; width: 100%; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 25px; }
+        .header h1 { margin: 0; font-size: 1.8em; font-weight: 700; text-shadow: 1px 1px 4px rgba(0,0,0,0.3); }
+
+        /* Auth Container Styles */
+        .auth-container { background-color: #fff; padding: 25px 30px; border-radius: 8px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); max-width: 450px; width: 90%; text-align: left; }
+        .auth-container h2 { color: #4e2d82; text-align: center; margin-bottom: 20px; font-size: 1.4em; }
+
+        /* Form Styles */
+        .auth-form label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; font-size: 0.95em; }
+        .auth-form input[type="text"], .auth-form input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; margin-bottom: 15px; }
+        .auth-form button { background-color: #4e2d82; color: #fff; padding: 10px 25px; border: none; border-radius: 4px; font-size: 1em; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease; width: 100%; margin-top: 5px; }
+        .auth-form button:hover { background-color: #3c2369; }
+
+        /* Message & Loading Styles */
+        .auth-message { color: #dc3545; font-size: 0.9em; margin-top: 15px; font-weight: 500; min-height: 1.2em; text-align: center; border: 1px solid transparent; padding: 8px; border-radius: 4px; }
+        .auth-message.success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+        .auth-message.error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .loading-indicator { text-align: center; padding: 15px; color: #666; font-style: italic; display: none; }
+
+        /* Hide forms initially except the first one */
+        #passwordSetupForm, #passwordLoginForm { display: none; }
+        /* Helper text */
+        .form-text { font-size: 0.9em; color: #666; margin-bottom: 15px; }
+         /* Style for the help link */
+        .help-link { text-align: center; margin-top: 20px; font-size: 0.9em; color: #555; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Alpha/Beta Command Center - Login</h1>
+    </div>
+
+    <div class="auth-container">
+
+        <!-- Step 1: Username Check Form -->
+        <form id="usernameCheckForm" class="auth-form">
+            <h2>Enter Username</h2>
+            <label for="loginUsername">Username</label>
+            <input type="text" id="loginUsername" name="username" placeholder="Your username" required autofocus>
+            <button type="submit">Continue</button>
+        </form>
+
+        <!-- Step 2a: Password Setup Form (Hidden initially) -->
+        <form id="passwordSetupForm" class="auth-form" style="display: none;">
+            <h2>Set Your Password</h2>
+            <p class="form-text">Welcome, <strong id="setupUsername"></strong>! Please set a password for your account.</p>
+            <label for="newPassword">New Password (min. 8 characters)</label>
+            <input type="password" id="newPassword" name="newPassword" required minlength="8">
+            <label for="confirmPassword">Confirm New Password</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" required minlength="8">
+            <button type="submit">Set Password & Login</button>
+        </form>
+
+        <!-- Step 2b: Password Login Form (Hidden initially) -->
+        <form id="passwordLoginForm" class="auth-form" style="display: none;">
+            <h2>Enter Password</h2>
+            <p class="form-text">Welcome back, <strong id="loginUsernameDisplay"></strong>!</p>
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+
+        <!-- *** ADDED CONFLUENCE LINK HERE *** -->
+        <p class="help-link">
+            Need help? <a href="https://athenaconfluence.athenahealth.com/spaces/ROIA/pages/748208482/Alpha+Beta+Command+Center+-+User+Guide" target="_blank" title="Opens Confluence User Guide in a new tab">View the User Guide</a>.
+        </p>
+        <!-- ******************************* -->
+
+        <!-- Message Display Area -->
+        <div id="authMessage" class="auth-message"></div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="loading-indicator">Processing...</div>
+
+    </div>
+
+    <!-- Link to the JavaScript file -->
+    <script src="login.js"></script>
+
+</body>
+</html>

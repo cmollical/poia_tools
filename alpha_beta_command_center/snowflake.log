@@ -1,0 +1,76 @@
+{"level":"INFO","message":"[11:07:09.191 AM]: Creating new connection object"}
+{"level":"INFO","message":"[11:07:09.206 AM]: Creating Connection[id: cab190af-100a-486d-a17f-96a43467ed5c] with host: athenahealth.snowflakecomputing.com.snowflakecomputing.com, account: athenahealth, accessUrl: https://athenahealth.snowflakecomputing.com.snowflakecomputing.com, user: SVC_JIR_PROPS, role: CORPANALYTICS_BDB_PRDPF_PROD_RW, database: CORPANALYTICS_BUSINESS_PROD, schema: SCRATCHPAD_PRDPF, warehouse: CORPANALYTICS_BDB_PRDPF_WH_READWRITE_PROD, proxy was not configured, password is provided, region: snowflakecomputing.com, authen"}
+{"level":"INFO","message":"[11:07:09.207 AM]: Connection[id: cab190af-100a-486d-a17f-96a43467ed5c] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.0.3, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[11:07:09.207 AM]: Connection[id: cab190af-100a-486d-a17f-96a43467ed5c] - connection object created successfully."}
+{"level":"INFO","message":"[11:07:09.208 AM]: Connection[id: cab190af-100a-486d-a17f-96a43467ed5c] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[11:07:09.209 AM]: Connection[id: cab190af-100a-486d-a17f-96a43467ed5c] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[11:07:09.209 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[11:07:09.211 AM]: No client config detected."}
+{"level":"INFO","message":"[11:07:09.212 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[11:07:09.216 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[11:07:09.219 AM]: Connection[id: cab190af-100a-486d-a17f-96a43467ed5c] - connected successfully after 11.146699999997509 milliseconds"}
+{"level":"INFO","message":"[11:09:16.374 AM]: Creating new connection object"}
+{"level":"INFO","message":"[11:09:16.389 AM]: Creating Connection[id: 3819fb0b-6870-48b1-a5c4-343f47d7a59c] with host: athenahealth.snowflakecomputing.com.snowflakecomputing.com, account: athenahealth, accessUrl: https://athenahealth.snowflakecomputing.com.snowflakecomputing.com, user: SVC_JIR_PROPS, role: CORPANALYTICS_BDB_PRDPF_PROD_RW, database: CORPANALYTICS_BUSINESS_PROD, schema: SCRATCHPAD_PRDPF, warehouse: CORPANALYTICS_BDB_PRDPF_WH_READWRITE_PROD, proxy was not configured, password is provided, region: snowflakecomputing.com, authen"}
+{"level":"INFO","message":"[11:09:16.390 AM]: Connection[id: 3819fb0b-6870-48b1-a5c4-343f47d7a59c] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.0.3, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[11:09:16.391 AM]: Connection[id: 3819fb0b-6870-48b1-a5c4-343f47d7a59c] - connection object created successfully."}
+{"level":"INFO","message":"[11:09:16.391 AM]: Connection[id: 3819fb0b-6870-48b1-a5c4-343f47d7a59c] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[11:09:16.393 AM]: Connection[id: 3819fb0b-6870-48b1-a5c4-343f47d7a59c] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[11:09:16.394 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[11:09:16.397 AM]: No client config detected."}
+{"level":"INFO","message":"[11:09:16.397 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[11:09:16.398 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[11:09:16.400 AM]: Connection[id: 3819fb0b-6870-48b1-a5c4-343f47d7a59c] - connected successfully after 8.866700000000492 milliseconds"}
+{"level":"INFO","message":"[11:10:16.886 AM]: Creating new connection object"}
+{"level":"INFO","message":"[11:10:16.910 AM]: Creating Connection[id: e6a32062-2881-45bc-9864-902d44fd1b3d] with host: athenahealth.snowflakecomputing.com.snowflakecomputing.com, account: athenahealth, accessUrl: https://athenahealth.snowflakecomputing.com.snowflakecomputing.com, user: SVC_JIR_PROPS, role: CORPANALYTICS_BDB_PRDPF_PROD_RW, database: CORPANALYTICS_BUSINESS_PROD, schema: SCRATCHPAD_PRDPF, warehouse: CORPANALYTICS_BDB_PRDPF_WH_READWRITE_PROD, proxy was not configured, password is provided, region: snowflakecomputing.com, authen"}
+{"level":"INFO","message":"[11:10:16.911 AM]: Connection[id: e6a32062-2881-45bc-9864-902d44fd1b3d] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.0.3, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[11:10:16.912 AM]: Connection[id: e6a32062-2881-45bc-9864-902d44fd1b3d] - connection object created successfully."}
+{"level":"INFO","message":"[11:10:16.912 AM]: Connection[id: e6a32062-2881-45bc-9864-902d44fd1b3d] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[11:10:16.914 AM]: Connection[id: e6a32062-2881-45bc-9864-902d44fd1b3d] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[11:10:16.914 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[11:10:16.916 AM]: No client config detected."}
+{"level":"INFO","message":"[11:10:16.919 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[11:10:16.920 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[11:10:16.924 AM]: Connection[id: e6a32062-2881-45bc-9864-902d44fd1b3d] - connected successfully after 11.897100000000137 milliseconds"}
+{"level":"INFO","message":"[11:14:24.043 AM]: Creating new connection object"}
+{"level":"INFO","message":"[11:14:24.075 AM]: Creating Connection[id: 7b294d52-3bff-4a8d-b6ae-30c5018c3cf3] with host: athenahealth.snowflakecomputing.com.snowflakecomputing.com, account: athenahealth, accessUrl: https://athenahealth.snowflakecomputing.com.snowflakecomputing.com, user: SVC_JIR_PROPS, role: CORPANALYTICS_BDB_PRDPF_PROD_RW, database: CORPANALYTICS_BUSINESS_PROD, schema: SCRATCHPAD_PRDPF, warehouse: CORPANALYTICS_BDB_PRDPF_WH_READWRITE_PROD, proxy was not configured, password is provided, region: snowflakecomputing.com, authen"}
+{"level":"INFO","message":"[11:14:24.078 AM]: Connection[id: 7b294d52-3bff-4a8d-b6ae-30c5018c3cf3] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.0.3, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[11:14:24.079 AM]: Connection[id: 7b294d52-3bff-4a8d-b6ae-30c5018c3cf3] - connection object created successfully."}
+{"level":"INFO","message":"[11:14:24.080 AM]: Connection[id: 7b294d52-3bff-4a8d-b6ae-30c5018c3cf3] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[11:14:24.082 AM]: Connection[id: 7b294d52-3bff-4a8d-b6ae-30c5018c3cf3] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[11:14:24.082 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[11:14:24.084 AM]: No client config detected."}
+{"level":"INFO","message":"[11:14:24.085 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[11:14:24.086 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[11:14:24.093 AM]: Connection[id: 7b294d52-3bff-4a8d-b6ae-30c5018c3cf3] - connected successfully after 12.735399999975925 milliseconds"}
+{"level":"INFO","message":"[11:16:54.395 AM]: Creating new connection object"}
+{"level":"INFO","message":"[11:16:54.397 AM]: Creating Connection[id: ce8fe380-4f0a-4abc-9205-f5249a456886] with host: athenahealth.snowflakecomputing.com.snowflakecomputing.com, account: athenahealth, accessUrl: https://athenahealth.snowflakecomputing.com.snowflakecomputing.com, user: SVC_JIR_PROPS, role: CORPANALYTICS_BDB_PRDPF_PROD_RW, database: CORPANALYTICS_BUSINESS_PROD, schema: SCRATCHPAD_PRDPF, warehouse: CORPANALYTICS_BDB_PRDPF_WH_READWRITE_PROD, proxy was not configured, password is provided, region: snowflakecomputing.com, authen"}
+{"level":"INFO","message":"[11:16:54.397 AM]: Connection[id: ce8fe380-4f0a-4abc-9205-f5249a456886] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.0.3, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[11:16:54.398 AM]: Connection[id: ce8fe380-4f0a-4abc-9205-f5249a456886] - connection object created successfully."}
+{"level":"INFO","message":"[11:16:54.398 AM]: Connection[id: ce8fe380-4f0a-4abc-9205-f5249a456886] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[11:16:54.398 AM]: Connection[id: ce8fe380-4f0a-4abc-9205-f5249a456886] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[11:16:54.399 AM]: Connection[id: ce8fe380-4f0a-4abc-9205-f5249a456886] - connected successfully after 0.9182999999611638 milliseconds"}
+{"level":"INFO","message":"[11:18:55.197 AM]: Creating new connection object"}
+{"level":"INFO","message":"[11:18:55.235 AM]: Creating Connection[id: b60505f5-6bd8-415a-bc1a-c32b21a8f73f] with host: athenahealth.snowflakecomputing.com.snowflakecomputing.com, account: athenahealth, accessUrl: https://athenahealth.snowflakecomputing.com.snowflakecomputing.com, user: SVC_JIR_PROPS, role: CORPANALYTICS_BDB_PRDPF_PROD_RW, database: CORPANALYTICS_BUSINESS_PROD, schema: SCRATCHPAD_PRDPF, warehouse: CORPANALYTICS_BDB_PRDPF_WH_READWRITE_PROD, proxy was not configured, password is provided, region: snowflakecomputing.com, authen"}
+{"level":"INFO","message":"[11:18:55.236 AM]: Connection[id: b60505f5-6bd8-415a-bc1a-c32b21a8f73f] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.0.3, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[11:18:55.236 AM]: Connection[id: b60505f5-6bd8-415a-bc1a-c32b21a8f73f] - connection object created successfully."}
+{"level":"INFO","message":"[11:18:55.237 AM]: Connection[id: b60505f5-6bd8-415a-bc1a-c32b21a8f73f] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[11:18:55.239 AM]: Connection[id: b60505f5-6bd8-415a-bc1a-c32b21a8f73f] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[11:18:55.240 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[11:18:55.246 AM]: No client config detected."}
+{"level":"INFO","message":"[11:18:55.246 AM]: No config file path found. Client config will not be used."}
+{"level":"INFO","message":"[11:18:55.247 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[11:18:55.252 AM]: Connection[id: b60505f5-6bd8-415a-bc1a-c32b21a8f73f] - connected successfully after 14.933899999999994 milliseconds"}
+{"level":"INFO","message":"[11:21:43.610 AM]: Creating new connection object"}
+{"level":"INFO","message":"[11:21:43.614 AM]: Creating Connection[id: 01bcd0cd-0fff-46ff-a43b-742ad1212a34] with host: athenahealth.snowflakecomputing.com.snowflakecomputing.com, account: athenahealth, accessUrl: https://athenahealth.snowflakecomputing.com.snowflakecomputing.com, user: SVC_JIR_PROPS, role: CORPANALYTICS_BDB_PRDPF_PROD_RW, database: CORPANALYTICS_BUSINESS_PROD, schema: SCRATCHPAD_PRDPF, warehouse: CORPANALYTICS_BDB_PRDPF_WH_READWRITE_PROD, proxy was not configured, password is provided, region: snowflakecomputing.com, authen"}
+{"level":"INFO","message":"[11:21:43.617 AM]: Connection[id: 01bcd0cd-0fff-46ff-a43b-742ad1212a34] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.0.3, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[11:21:43.618 AM]: Connection[id: 01bcd0cd-0fff-46ff-a43b-742ad1212a34] - connection object created successfully."}
+{"level":"INFO","message":"[11:21:43.619 AM]: Connection[id: 01bcd0cd-0fff-46ff-a43b-742ad1212a34] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[11:21:43.620 AM]: Connection[id: 01bcd0cd-0fff-46ff-a43b-742ad1212a34] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[11:21:43.622 AM]: Connection[id: 01bcd0cd-0fff-46ff-a43b-742ad1212a34] - connected successfully after 2.849900000001071 milliseconds"}
+{"level":"INFO","message":"[11:22:10.249 AM]: Creating new connection object"}
+{"level":"INFO","message":"[11:22:10.251 AM]: Creating Connection[id: 57a15978-da98-4e82-8286-88436a4b0d59] with host: athenahealth.snowflakecomputing.com.snowflakecomputing.com, account: athenahealth, accessUrl: https://athenahealth.snowflakecomputing.com.snowflakecomputing.com, user: SVC_JIR_PROPS, role: CORPANALYTICS_BDB_PRDPF_PROD_RW, database: CORPANALYTICS_BUSINESS_PROD, schema: SCRATCHPAD_PRDPF, warehouse: CORPANALYTICS_BDB_PRDPF_WH_READWRITE_PROD, proxy was not configured, password is provided, region: snowflakecomputing.com, authen"}
+{"level":"INFO","message":"[11:22:10.253 AM]: Connection[id: 57a15978-da98-4e82-8286-88436a4b0d59] additional details: passcode in password is provided, passcode is not provided, private key is not provided, application: undefined, client name: snowflake-sdk, client version: 2.0.3, retry timeout: 300, private key path: undefined, private key pass is not provided, client store temporary credential: false, browser response timeout: 120000"}
+{"level":"INFO","message":"[11:22:10.254 AM]: Connection[id: 57a15978-da98-4e82-8286-88436a4b0d59] - connection object created successfully."}
+{"level":"INFO","message":"[11:22:10.256 AM]: Connection[id: 57a15978-da98-4e82-8286-88436a4b0d59] - connecting. Associated Snowflake domain: GLOBAL"}
+{"level":"INFO","message":"[11:22:10.257 AM]: Connection[id: 57a15978-da98-4e82-8286-88436a4b0d59] - authentication successful using: SNOWFLAKE"}
+{"level":"INFO","message":"[11:22:10.259 AM]: Connection[id: 57a15978-da98-4e82-8286-88436a4b0d59] - connected successfully after 2.842399999994086 milliseconds"}

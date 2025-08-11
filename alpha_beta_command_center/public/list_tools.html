@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Client Recruitment List Generation & Scrubbing</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      /* --- ALL EXISTING STYLES --- */
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: Arial, sans-serif; background-color: #f9f9f9; color: #333; display: flex; flex-direction: column; align-items: center; padding-bottom: 70px; position: relative; min-height: 100vh; }
+      input[type="text"], textarea, input[type="number"], select { font-family: Arial, sans-serif; }
+      a { text-decoration: none; color: inherit; }
+      .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #4e2d82; color: #fff; width: 100%; position: relative; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+      .header h1 { margin: 0; font-size: 1.6em; font-weight: 700; text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3); text-align: center; flex-grow: 1; }
+      .header .header-buttons-left, .header .header-buttons-right { flex-basis: 180px; flex-shrink: 0; }
+      .header .header-buttons-left { text-align: left; }
+      .header .header-buttons-right { text-align: right; }
+      .nav-link { color: #fff; background-color: #6c757d; padding: 8px 15px; border-radius: 4px; font-size: 14px; transition: background-color 0.2s; border: 1px solid #fff; display: inline-block; white-space: nowrap; }
+      .nav-link:hover { background-color: #5a6268; text-decoration: none; color: #fff; }
+      #scrubListButton { background-color: #4e2d82; color: #fff; border: 1px solid #fff; padding: 8px 16px; cursor: pointer; border-radius: 4px; font-size: 14px; transition: background-color 0.2s, color 0.2s; white-space: nowrap; }
+      #scrubListButton:hover { background-color: #fff; color: #4e2d82; }
+      .ai-flow { max-width: 1200px; width: 100%; background: #fff; padding: 4px 8px; margin: 20px auto 5px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1); display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; }
+      .ai-flow h2 { width: 100%; text-align: center; margin: 10px 0; color: #4e2d82; font-size: 16px; }
+      .ai-step { display: flex; flex-direction: column; align-items: center; font-size: 12px; max-width: 150px; text-align: center; margin: 5px; }
+      .ai-step .icon { width: 30px; height: 30px; background: #4e2d82; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-bottom: 4px; }
+      .ai-arrow { font-size: 18px; color: #4e2d82; margin: 0 5px; align-self: center; }
+      .main-content { max-width: 1200px; width: 100%; margin: 5px auto; padding: 0 10px; padding-bottom: 70px; }
+      .full-width-box { background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1); margin-bottom: 10px; }
+      .full-width-box label { display: block; margin-bottom: 5px; font-weight: 500; color: #555; }
+      .full-width-box textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; min-height: 90px; resize: vertical; }
+      .columns-container { display: grid; grid-template-columns: 350px 400px 1fr; gap: 10px; }
+      .filter-column { background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; height: 550px; overflow-y: auto; }
+      .filter-column h3 { margin-top: 0; color: #4e2d82; font-size: 1.1em; margin-bottom: 15px; }
+      .filter-group { margin-bottom: 15px; }
+      .filter-group > label:not(.checkbox-item) { display: block; margin-bottom: 8px; color: #333; font-size: 14px; font-weight: bold; }
+      .filter-group input[type="number"] { padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 80px; margin-bottom: 5px; display: block; }
+      .checkbox-item { display: block; margin-bottom: 6px; font-weight: normal; color: #555; font-size: 13px; cursor: pointer; line-height: 1.3; }
+      .checkbox-item input[type="checkbox"] { margin-right: 8px; vertical-align: middle; width: 15px; height: 15px; }
+      .form-column { background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; min-height: 550px; position: relative; }
+      .form-column label { margin-bottom: 5px; font-weight: 500; color: #555; font-size: 14px; }
+      .form-column input[type="text"], .form-column textarea, .form-column select { padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; }
+      .form-column textarea { resize: vertical; min-height: 150px; }
+      .file-name-container { display: flex; gap: 10px; margin-bottom: 10px; }
+      .file-name-container > div { display: flex; flex-direction: column; flex: 1; }
+      .file-name-container > div:nth-child(1) { flex-basis: 40%; }
+      .file-name-container > div:nth-child(2) { flex-basis: 25%; }
+      .file-name-container > div:nth-child(3) { flex-basis: 15%; }
+      .file-name-container > div:nth-child(4) { flex-basis: 20%; }
+      .file-name-container label { margin-bottom: 3px; font-weight: 500; color: #555; white-space: nowrap; font-size: 13px; }
+      .file-name-container input[type="text"], .file-name-container select { padding: 6px; font-size: 13px; }
+      .button-container { display: flex; gap: 10px; margin-top: auto; padding-top: 10px; }
+      .form-column button[type="submit"] { background-color: #4e2d82; color: #fff; padding: 10px 20px; font-size: 16px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.3s ease; width: 100%; }
+      .form-column button[type="submit"]:hover { background-color: #3c2369; }
+      .info-column { background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1); max-height: 550px; overflow-y: auto; font-size: 13px; }
+      .info-column h2 { margin-top: 0; color: #4e2d82; font-size: 1.1em; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+      .info-column table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      .info-column th, .info-column td { border: 1px solid #ddd; padding: 6px; vertical-align: top; }
+      .info-column th { background-color: #f2f2f2; color: #4e2d82; }
+      #finalMessage, #errorMessage { display: none; margin: 15px auto; padding: 10px 15px; border-radius: 4px; font-size: 14px; font-weight: 500; text-align: center; max-width: 600px; }
+      #finalMessage { color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; }
+      #finalMessage a { color: #0056b3; text-decoration: underline; }
+      #errorMessage { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; }
+      #resetButton { display: none; margin: 10px auto; padding: 8px 16px; font-size: 14px; background-color: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.3s ease; }
+      #resetButton:hover { background-color: #5a6268; }
+      .logo-container { position: fixed; bottom: 10px; right: 10px; z-index: 999; }
+      .logo-container img { width: 120px; height: auto; opacity: 0.8; }
+      .loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 9999; }
+      .spinner { border: 8px solid #ccc; border-top: 8px solid #4e2d82; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      .step { font-size: 16px; color: #fff; opacity: 0; transition: opacity 0.5s; text-align: center; max-width: 80%; line-height: 1.4; }
+      .step.active { opacity: 1; }
+      .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
+      .modal .modal-content { background: #fff; padding: 20px; border-radius: 8px; width: 90%; max-width: 700px; text-align: left; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); max-height: 85vh; display: flex; flex-direction: column; }
+      .modal .modal-content h3 { margin-top: 0; font-size: 18px; margin-bottom: 15px; color: #4e2d82; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+      .modal .modal-table-container { overflow-y: auto; margin-bottom: 15px; flex-grow: 1; min-height: 100px; }
+      .modal table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      .modal th, .modal td { border: 1px solid #ddd; padding: 8px 10px; vertical-align: middle; text-align: left; }
+      .modal th { background-color: #f8f9fa; color: #495057; font-weight: 600; position: sticky; top: 0; z-index: 1; }
+      .modal tr:nth-child(even) { background-color: #fdfdfe; }
+      .modal tr:hover { background-color: #e9ecef; }
+      .modal td { word-break: break-word; }
+      .modal .modal-actions { display: flex; justify-content: space-between; gap: 10px; padding-top: 15px; border-top: 1px solid #eee; align-items: center; }
+      .modal .modal-actions-right { display: flex; gap: 10px; }
+      .modal .modal-button { background-color: #4e2d82; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.2s; }
+      .modal .modal-button:hover { background-color: #3c2369; }
+      .modal .modal-button.secondary { background-color: #6c757d; }
+      .modal .modal-button.secondary:hover { background-color: #5a6268; }
+      .modal .selectListBtn { font-size: 12px; padding: 5px 10px; background-color: #28a745; }
+      .modal .selectListBtn:hover { background-color: #218838; }
+      #searchListModal .modal-content { max-width: 800px; }
+      .modal .search-criteria { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 0; align-items: end; }
+      .modal .search-criteria > div { display: flex; flex-direction: column; }
+      .modal .search-criteria label { font-size: 13px; margin-bottom: 5px; display: block; color: #555; font-weight: 500; }
+      .modal .search-criteria input, .modal .search-criteria select { width: 100%; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
+      .modal .search-actions { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+      #searchOtherListsBtn { padding: 8px 20px; height: 37px; align-self: flex-end; }
+      .modal .search-error { color: #dc3545; font-size: 13px; font-weight: 500; margin-top: 10px; min-height: 1.2em; text-align: left; }
+      #repSampleModal .modal-content { max-width: 320px; text-align: center; }
+      #repSampleModal .modal-content h3 { text-align: center; }
+      #repSampleForm { margin-top: 15px; margin-bottom: 15px; }
+      #repSampleForm div { text-align: left; margin-bottom: 8px; }
+      #repSampleForm input[type="checkbox"] { margin-right: 8px; vertical-align: middle; }
+      #repSampleForm label { font-weight: normal; font-size: 14px; vertical-align: middle; }
+      #repSampleModal .modal-content button { margin: 10px auto 0; display: block; }
+      #templateSelectModal .modal-content { max-width: 450px; }
+      #templateSelectForm { margin: 15px 0; }
+      #templateSelectForm .template-option { display: block; margin-bottom: 12px; cursor: pointer; }
+      #templateSelectForm .template-option input[type="radio"] { margin-right: 10px; vertical-align: middle; width: 16px; height: 16px; }
+      #templateSelectForm .template-option label { font-size: 15px; vertical-align: middle; color: #333; }
+      #templateSelectModal .modal-actions { justify-content: flex-end; }
+      #scrubListModal .modal-content { max-width: 900px; max-height: 90vh; }
+      #scrubListModal form { display: grid; grid-template-columns: 350px 1fr; gap: 20px; margin-top: 15px; flex-grow: 1; overflow-y: hidden; }
+      #scrubListModal .modal-filter-column { height: auto; max-height: calc(85vh - 150px); overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 4px; background: #fff; box-shadow: none; }
+      #scrubListModal .modal-filter-column h3 { margin-top: 0; color: #4e2d82; font-size: 1.1em; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+      #scrubListModal .modal-input-column { display: flex; flex-direction: column; gap: 10px; max-height: calc(85vh - 150px); overflow-y: auto; padding-right: 5px; }
+      #scrubListModal .modal-input-column label { margin-bottom: 3px; font-weight: 500; color: #555; font-size: 14px; }
+      #scrubListModal .modal-input-column input[type="text"], #scrubListModal .modal-input-column select, #scrubListModal .modal-input-column textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+      #scrubListModal .modal-input-column textarea { min-height: 100px; resize: vertical; flex-grow: 1; }
+      #scrubListModal .file-name-container { margin-bottom: 0; }
+      #scrubListModal .modal-actions { margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
+      #scrubGeneratedPrompt { margin-top: 10px; padding: 8px; background-color: #f0f0f0; border: 1px dashed #ccc; border-radius: 4px; font-size: 12px; color: #555; min-height: 40px; word-wrap: break-word; white-space: pre-wrap; font-family: monospace; }
+      #scrubErrorMsg { color: #dc3545; font-size: 13px; font-weight: 500; margin-top: 5px; min-height: 1.2em; text-align: left; }
+      
+      /* DarkLaunch button pulse animation */
+      @keyframes darkLaunchPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+    </style>
+
+    <!-- Session Check Script (Keep in HEAD for early execution) -->
+    <script>
+      (async () => {
+          try {
+              const response = await fetch('/auth/check-session'); // Use correct auth endpoint
+              if (!response.ok) {
+                   console.error(`Session check failed with status: ${response.status}`);
+                   throw new Error(`Session check failed`); // Go to catch block
+              }
+              const data = await response.json();
+              if (!data.loggedIn) {
+                  console.log('User session invalid/expired, redirecting to login.');
+                  window.location.href = '/login'; // Redirect to login page route
+              } else {
+                   console.log(`Tool Page: User ${data.username} is logged in. Proceeding.`);
+                   // Optionally store username if needed by main script later
+                   // sessionStorage.setItem('loggedInUsername', data.username);
+              }
+          } catch (error) {
+              console.error('Error during tool page session check, redirecting to login:', error);
+              window.location.href = '/login'; // Redirect to login page route on any error
+          }
+      })();
+    </script>
+    <!-- End Session Check Script -->
+  </head>
+  <body>
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-buttons-left">
+        <a href="/" class="nav-link">Back to Home</a>
+      </div>
+      <h1>List Generation & Scrubbing</h1>
+      <div class="header-buttons-right">
+        <!-- <button id="scrubListButton">Scrub Existing List</button> -->
+      </div>
+    </div>
+
+    <!-- AI PROCESS FLOW -->
+    <div class="ai-flow">
+        <h2>What Happens When You Submit?</h2>
+        <div class="ai-step"><div class="icon">1</div><div class="text">Prioritizes clients interested via Success Community.</div></div><div class="ai-arrow">→</div><div class="ai-step"><div class="icon">2</div><div class="text">Excludes previously invited clients for this feature.</div></div><div class="ai-arrow">→</div><div class="ai-step"><div class="icon">3</div><div class="text">Gathers additional clients matching filters/proportions.</div></div><div class="ai-arrow">→</div><div class="ai-step"><div class="icon">4</div><div class="text">Finalizes the list and prepares the output file.</div></div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+      <form id="recruitmentForm" autocomplete="off">
+        <!-- PROMPT BOX -->
+        <div class="full-width-box">
+          <label for="var2">Tell me about your list:</label>
+          <textarea id="var2" name="var2" required rows="3">Please give me xx contexts</textarea>
+        </div>
+
+        <!-- THREE COLUMN GRID -->
+        <div class="columns-container">
+          <!-- LEFT COLUMN (FILTERS) -->
+          <div class="filter-column" id="mainFilterColumn">
+            <h3>Interactive Request Generator</h3>
+            <div class="filter-group" id="contextNumber-group"><label for="numContexts">Number of Contexts:</label><input type="number" id="numContexts" name="numContexts" placeholder="e.g., 60"/><label class="checkbox-item"><input type="checkbox" id="repSample" name="repSample" /> Representative Sample</label><label class="checkbox-item"><input type="checkbox" id="noExcludePrevInvites" name="noExcludePrevInvites" /> Do Not Exclude Previous Invites</label><label class="checkbox-item"><input type="checkbox" id="listScrub" name="listScrub" /> List Scrub</label></div>
+            <div class="filter-group" id="csmTier-group"><label>CSM Tier:</label><label class="checkbox-item"><input type="checkbox" value="Enterprise" />Enterprise</label><label class="checkbox-item"><input type="checkbox" value="Hospital" />Hospital</label><label class="checkbox-item"><input type="checkbox" value="Small Group" />Small Group</label><label class="checkbox-item"><input type="checkbox" value="Group" />Group</label></div>
+            <div class="filter-group" id="csTeam-group"><label>CS Team:</label><label class="checkbox-item"><input type="checkbox" value="Enterprise" />Enterprise</label><label class="checkbox-item"><input type="checkbox" value="Hospital" />Hospital</label><label class="checkbox-item"><input type="checkbox" value="Top 25 Client" />Top 25 Client</label><label class="checkbox-item"><input type="checkbox" value="Small Group" />Small Group</label><label class="checkbox-item"><input type="checkbox" value="Group" />Group</label><label class="checkbox-item"><input type="checkbox" value="Small Group - Specialist" />Small Group - Specialist</label><label class="checkbox-item"><input type="checkbox" value="Small Group - 1st Year Live" />Small Group - 1st Year Live</label></div>
+            <div class="filter-group" id="clientRelType-group">
+              <label>Client Relationship Type:</label>
+              <label class="checkbox-item"><input type="checkbox" value="API IT" />API IT</label>
+              <label class="checkbox-item"><input type="checkbox" value="Clinical Performance Beta Coordinator" />Clinical Performance Beta Coordinator</label>
+              <label class="checkbox-item"><input type="checkbox" value="Clinical Performance Beta Coordinator – Clinical Admin/IT" />Clinical Performance Beta Coordinator – Clinical Admin/IT</label>
+              <label class="checkbox-item"><input type="checkbox" value="Clinical Performance Beta Coordinator – Clinical Workflow" />Clinical Performance Beta Coordinator – Clinical Workflow</label>
+              <label class="checkbox-item"><input type="checkbox" value="Clinical Performance Beta Coordinator – Quality" />Clinical Performance Beta Coordinator – Quality</label>
+              <label class="checkbox-item"><input type="checkbox" value="CSM is Beta Coordinator" />CSM is Beta Coordinator</label>              
+              <label class="checkbox-item"><input type="checkbox" value="Dental Beta Coordinator" />Dental Beta Coordinator</label>
+              <label class="checkbox-item"><input type="checkbox" value="Hospital Beta Coordinator" />Hospital Beta Coordinator</label>
+              <label class="checkbox-item"><input type="checkbox" value="Patient Relations Beta Coord- Collector" />Patient Relations Beta Coord- Collector</label>
+              <label class="checkbox-item"><input type="checkbox" value="Patient Relations Beta Coordinator" />Patient Relations Beta Coordinator</label>
+              <label class="checkbox-item"><input type="checkbox" value="Patient Relations Beta Coordinator – Clinicals" />Patient Relations Beta Coordinator – Clinicals</label>
+              <label class="checkbox-item"><input type="checkbox" value="Pop Health Beta Coordinator" />Pop Health Beta Coordinator</label>
+              <label class="checkbox-item"><input type="checkbox" value="Rev Cycle Beta Coordinator" />Rev Cycle Beta Coordinator</label>
+              <label class="checkbox-item"><input type="checkbox" value="Rev Cycle Beta Coordinator - Billing" />Rev Cycle Beta Coordinator - Billing</label>
+              <label class="checkbox-item"><input type="checkbox" value="Rev Cycle Beta Coordinator – Auth Management" />Rev Cycle Beta Coordinator – Auth Management</label>
+              <label class="checkbox-item"><input type="checkbox" value="Rev Cycle Beta Coordinator – Front Office" />Rev Cycle Beta Coordinator – Front Office</label>
+          </div>
+            <div class="filter-group" id="specialty-group"><label>Specialty:</label><label class="checkbox-item"><input type="checkbox" value="Family Practice" />Family Practice</label><label class="checkbox-item"><input type="checkbox" value="Multi Specialty" />Multi Specialty</label><label class="checkbox-item"><input type="checkbox" value="Internal Medicine" />Internal Medicine</label><label class="checkbox-item"><input type="checkbox" value="Obstetrics/Gynecology" />Obstetrics/Gynecology</label><label class="checkbox-item"><input type="checkbox" value="Pediatrics" />Pediatrics</label><label class="checkbox-item"><input type="checkbox" value="Urgent Care" />Urgent Care</label><label class="checkbox-item"><input type="checkbox" value="Orthopedic Surgery" />Orthopedic Surgery</label><label class="checkbox-item"><input type="checkbox" value="Podiatry" />Podiatry</label><label class="checkbox-item"><input type="checkbox" value="Pain Management Specialist" />Pain Management Specialist</label><label class="checkbox-item"><input type="checkbox" value="Cardiology" />Cardiology</label><label class="checkbox-item"><input type="checkbox" value="Behavioral Health" />Behavioral Health</label><label class="checkbox-item"><input type="checkbox" value="Psychiatry" />Psychiatry</label><label class="checkbox-item"><input type="checkbox" value="Neurology" />Neurology</label><label class="checkbox-item"><input type="checkbox" value="Ophthalmology" />Ophthalmology</label><label class="checkbox-item"><input type="checkbox" value="General Surgery" />General Surgery</label></div>
+            <div class="filter-group" id="clinicalsStatus-group"><label>Clinicals Status:</label><label class="checkbox-item"><input type="checkbox" value="Contract Change" />Contract Change</label><label class="checkbox-item"><input type="checkbox" value="Live" />Live</label><label class="checkbox-item"><input type="checkbox" value="Pre-Live" />Pre-Live</label><label class="checkbox-item"><input type="checkbox" value="Live: Termination Pending" />Live: Termination Pending</label><label class="checkbox-item"><input type="checkbox" value="Terminated" />Terminated</label><label class="checkbox-item"><input type="checkbox" value="Chargeback" />Chargeback</label></div>
+            <div class="filter-group" id="collectorStatus-group"><label>Collector Status:</label><label class="checkbox-item"><input type="checkbox" value="Live" />Live</label><label class="checkbox-item"><input type="checkbox" value="Pre-Live" />Pre-Live</label><label class="checkbox-item"><input type="checkbox" value="Live: Termination Pending" />Live: Termination Pending</label><label class="checkbox-item"><input type="checkbox" value="Terminated" />Terminated</label><label class="checkbox-item"><input type="checkbox" value="Chargeback" />Chargeback</label></div>
+            <div class="filter-group" id="communicatorStatus-group"><label>Communicator Status:</label><label class="checkbox-item"><input type="checkbox" value="Live" />Live</label><label class="checkbox-item"><input type="checkbox" value="Pre-Live" />Pre-Live</label><label class="checkbox-item"><input type="checkbox" value="Live: Termination Pending" />Live: Termination Pending</label><label class="checkbox-item"><input type="checkbox" value="Chargeback" />Chargeback</label><label class="checkbox-item"><input type="checkbox" value="Terminated" />Terminated</label></div>
+            <div class="filter-group" id="hospitalClinicalsStatus-group"><label>Hospital Clinicals Status:</label><label class="checkbox-item"><input type="checkbox" value="Live" />Live</label><label class="checkbox-item"><input type="checkbox" value="Terminated" />Terminated</label><label class="checkbox-item"><input type="checkbox" value="Chargeback" />Chargeback</label></div>
+            <div class="filter-group" id="hospitalCollectorStatus-group"><label>Hospital Collector Status:</label><label class="checkbox-item"><input type="checkbox" value="Live" />Live</label><label class="checkbox-item"><input type="checkbox" value="Terminated" />Terminated</label><label class="checkbox-item"><input type="checkbox" value="Chargeback" />Chargeback</label></div>
+            <div class="filter-group" id="alphaBetaStatus-group"><label>Alpha Beta Status:</label><label class="checkbox-item"><input type="checkbox" value="CSM Sends Alpha/Beta Invites" />CSM Sends Alpha/Beta Invites</label><label class="checkbox-item"><input type="checkbox" value="Interest Only" />Interest Only</label><label class="checkbox-item"><input type="checkbox" value="Can Contact Client Directly" />Can Contact Client Directly</label></div>
+            <div class="filter-group" id="npsStatus-group"><label>NPS Status:</label><label class="checkbox-item"><input type="checkbox" value="Passive" />Passive</label><label class="checkbox-item"><input type="checkbox" value="Promoter" />Promoter</label><label class="checkbox-item"><input type="checkbox" value="Detractor" />Detractor</label></div>
+          </div> <!-- End mainFilterColumn -->
+
+          <!-- MIDDLE COLUMN -->
+          <div class="form-column">
+            <div class="file-name-container">
+              <div><label for="featureNumber">Feature Number:</label><input type="text" id="featureNumber" name="featureNumber" placeholder="FEATURE-123" required pattern="FEATURE-\d{3,8}"/></div>
+              <div><label for="stage">Stage:</label><select id="stage" name="stage" required><option value="Alpha">Alpha</option><option value="Beta">Beta</option><option value="AlphaDark">AlphaDark</option><option value="BetaDark">BetaDark</option><option value="AlphaBundled">AlphaBundled</option><option value="BetaBundled">BetaBundled</option><option value="AlphaBatched">AlphaBatched</option><option value="BetaBatched">BetaBatched</option></select></div>
+              <div><label for="waveNumber">Wave:</label><select id="waveNumber" name="waveNumber" required><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
+              <div><label for="optInOut">Opt In/Out:</label><select id="optInOut" name="optInOut" required><option value="Opt-In">Opt-In</option><option value="Opt-Out">Opt-Out</option></select></div>
+            </div>
+            <input type="hidden" id="var3" name="var3" />
+            <label for="contextList">Paste your contexts (one per line):</label><textarea id="contextList" name="contextList" placeholder="Paste specific contexts to include here..."></textarea>
+            <div class="button-container">
+              <button type="button" id="darkLaunchButton" style="background-color: #e74c3c; color: #fff; padding: 10px 20px; font-size: 14px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.3s ease; margin-right: 10px;">🚀 DarkLaunch</button>
+              <button type="submit">Generate List</button>
+            </div>
+          </div> <!-- End form-column -->
+
+          <!-- RIGHT COLUMN -->
+          <div class="info-column">
+             <h2>Example Prompts</h2>
+             <table><tbody>
+              <tbody>
+                <tr><td>give me all interested clients for feature 27608, please make sure to not include voc customers or general population and don't exclude previous invites: CSM Tier of Small Group or Group.</td></tr>
+                <tr><td>Generate 60 contexts, live in clinicals, promoter NPS. Proportional by CSM Tier. Include 12345, 67890. Only Group & Enterprise Tiers.</td></tr>
+                <tr><td>Provide 100 contexts, live in telehealth, detractor NPS. Proportional by Time Zone. Exclude 11223, 44556, 77889.</td></tr>
+                <tr><td>Create 50 contexts, live in collector, passive NPS. Only Clinical Performance Beta Coordinator. Randomized.</td></tr>
+                <tr><td>Generate 80 contexts, live in clinicals & communicator, active NPS. Small Group Specialist CSM Team. Include 33445, 55667.</td></tr>
+                <tr><td>Provide a proportional sample of 120 contexts, live in auth management, promoter NPS. Distributed by Billing State. Include 99887, 77665, 55443.</td></tr>
+                <tr><td>Create 70 contexts, live in telehealth & collector, promoter or passive NPS. Patient Relations or Rev Cycle Beta Coordinator. Exclude 22334, 44556.</td></tr>
+                <tr><td>Generate 90 contexts, live in clinicals, passive NPS. Urgent Care or Free Clinic. Proportional sample. Include 66778, 88990.</td></tr>
+                <tr><td>Provide 55 contexts, live in telehealth & auth mgmt, promoter or detractor NPS. CSM Name Jane Smith. Exclude 11111, 22222, 33333.</td></tr>
+                <tr><td>Generate 150 contexts, live in communicator & collector, active NPS. Requires Clinical Admin/IT coordination. Representative by CSM Tier & Billing State. Include 44444, 55555, 66666.</td></tr>
+                <tr><td>Create 85 contexts, live in clinicals & telehealth, promoter or detractor NPS. Multi Specialty or Direct Primary Care. Rev Cycle or Dental Beta Coordinator. Include 77777, 88888.</td></tr>
+              </tbody>
+             </tbody></table>
+          </div> <!-- End info-column -->
+        </div> <!-- End columns-container -->
+      </form>
+
+      <!-- MESSAGES & RESET -->
+      <div id="finalMessage"></div>
+      <div id="errorMessage"></div>
+      <button id="resetButton">Create another list</button>
+    </div> <!-- End main-content -->
+
+    <!-- LOADING SCREEN -->
+    <div class="loading-screen" id="loadingScreen"><div class="spinner"></div><div class="step" id="loadingStep"></div></div>
+
+    <!-- LOGO -->
+    <div class="logo-container" id="logo-container"><img src="Product Operations Logo Small.png" alt="Product Operations Logo" /></div>
+
+    <!-- MODALS -->
+    <div id="repSampleModal" class="modal"><div class="modal-content"><h3>Select Representative based on:</h3><form id="repSampleForm"></form><button id="repSampleConfirm" class="modal-button">Confirm</button></div></div>
+
+    <!-- SCRUB MODAL -->
+    <div id="scrubListModal" class="modal">
+      <div class="modal-content">
+        <h3>Scrub Existing List - Max 2000 at a time!</h3>
+        <form id="scrubListForm" autocomplete="off">
+          <div class="modal-filter-column" id="scrubFilterColumnContainer"></div>
+          <div class="modal-input-column">
+            <div class="file-name-container">
+              <div><label for="scrubFeatureNumber">Feature Number:</label><input type="text" id="scrubFeatureNumber" name="scrubFeatureNumber" placeholder="FEATURE-123" required pattern="FEATURE-\d{3,8}"/></div>
+              <div><label for="scrubStage">Stage:</label><select id="scrubStage" name="scrubStage" required><option value="Alpha">Alpha</option><option value="Beta">Beta</option><option value="AlphaDark">Alpha Dark</option><option value="BetaDark">Beta Dark</option><option value="AlphaBundled">Alpha Bundled</option><option value="BetaBundled">Beta Bundled</option><option value="AlphaBatched">Alpha Batched</option><option value="BetaBatched">Beta Batched</option></select></div>
+              <div><label for="scrubWaveNumber">Wave Number:</label><select id="scrubWaveNumber" name="scrubWaveNumber" required><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
+            </div>
+            <div><label for="scrubContextList">Paste Context IDs (one per line):</label><textarea id="scrubContextList" name="scrubContextList" placeholder="Paste context IDs here..." required></textarea></div>
+            <!-- Download Checkbox -->
+            <div style="margin-top: 10px; padding: 5px; border: 1px dashed #ccc; border-radius: 4px; background-color: #f9f9f9;">
+                <label class="checkbox-item" style="font-weight: normal; color: #333; font-size: 13px; display: inline-block; margin-bottom: 0;">
+                    <input type="checkbox" id="scrubSaveToDownloads" name="scrubSaveToDownloads" style="margin-right: 8px; vertical-align: middle; width: 15px; height: 15px;">
+                    Save result only to my Downloads folder
+                </label>
+                <p style="font-size: 11px; color: #666; margin: 5px 0 0 23px; padding: 0;">If checked, file will NOT be saved to OneDrive.</p>
+            </div>
+            <!-- Exclude Feature Checkbox -->
+            <div style="margin-top: 10px;">
+              <label class="checkbox-item" style="font-weight: normal; color: #333; font-size: 13px;">
+                <input type="checkbox" id="scrubExcludeFeaturePrompt" name="scrubExcludeFeaturePrompt" style="margin-right: 8px; vertical-align: middle; width: 15px; height: 15px;">
+                Do not exclude previously invited clients for this Feature
+              </label>
+            </div>
+            <!-- Generated Prompt Display -->
+            <div><label>Generated Prompt (for review):</label><div id="scrubGeneratedPrompt">Prompt will appear here...</div></div>
+            <div id="scrubErrorMsg"></div>
+          </div>
+        </form>
+        <div class="modal-actions"><button class="modal-button secondary" id="cancelScrubBtn">Cancel</button><button class="modal-button" id="scrubSubmitBtn">Submit Scrub Request</button></div>
+      </div>
+    </div>
+
+    <!-- SQL EXPLANATION CONFIRMATION MODAL -->
+    <div id="sqlExplanationModal" class="modal">
+      <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+        <h3>🔍 Query Review - Please Confirm</h3>
+        <div style="margin-bottom: 20px;">
+          <h4 style="color: #4e2d82; margin-bottom: 10px;">What this query will do:</h4>
+          <div id="sqlExplanationText" style="background: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid #4e2d82; line-height: 1.5; font-size: 14px;">Loading explanation...</div>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <details>
+            <summary style="cursor: pointer; font-weight: bold; color: #666; margin-bottom: 10px;">📝 View Generated SQL (Technical)</summary>
+            <pre id="rawSqlCode" style="background: #f4f4f4; padding: 15px; border-radius: 6px; font-size: 12px; overflow-x: auto; white-space: pre-wrap;">Loading SQL...</pre>
+          </details>
+        </div>
+        
+        <div class="modal-actions">
+          <button class="modal-button secondary" id="retrySqlBtn">↩️ Retry with Different Prompt</button>
+          <button class="modal-button" id="confirmSqlBtn">✅ Confirm & Generate List</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- *** MOVED & CORRECTED SCRIPT BLOCK (v6 - Moved to end of body) *** -->
+    <script>
+        // --- Get Elements ---
+        const promptArea = document.getElementById('var2');
+        const numContextsInput = document.getElementById('numContexts');
+        const featureNumberInput = document.getElementById('featureNumber');
+        const contextListArea = document.getElementById('contextList');
+        const repSampleCheckbox = document.getElementById('repSample');
+        const noExcludePrevInvitesCheckbox = document.getElementById('noExcludePrevInvites');
+        const listScrubCheckbox = document.getElementById('listScrub');
+        const sqlExplanationModal = document.getElementById('sqlExplanationModal');
+        const sqlExplanationText = document.getElementById('sqlExplanationText');
+        const rawSqlCode = document.getElementById('rawSqlCode');
+        const confirmSqlBtn = document.getElementById('confirmSqlBtn');
+        const retrySqlBtn = document.getElementById('retrySqlBtn');
+        const repSampleModal = document.getElementById('repSampleModal');
+        const repSampleForm = document.getElementById('repSampleForm');
+        const repSampleConfirm = document.getElementById('repSampleConfirm');
+        const form = document.getElementById('recruitmentForm');
+        const finalMessageDiv = document.getElementById('finalMessage');
+        const errorMessageDiv = document.getElementById('errorMessage');
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingStepElem = document.getElementById('loadingStep');
+        const resetButton = document.getElementById('resetButton');
+        const scrubListButton = document.getElementById('scrubListButton');
+        const scrubListModal = document.getElementById('scrubListModal');
+        const scrubListForm = document.getElementById('scrubListForm');
+        const scrubFilterColumnContainer = document.getElementById('scrubFilterColumnContainer');
+        const scrubFeatureNumberInput = document.getElementById('scrubFeatureNumber');
+        const scrubStageSelect = document.getElementById('scrubStage');
+        const scrubWaveNumberSelect = document.getElementById('scrubWaveNumber');
+        const scrubContextListArea = document.getElementById('scrubContextList');
+        const scrubGeneratedPromptDiv = document.getElementById('scrubGeneratedPrompt');
+        const scrubErrorMsgDiv = document.getElementById('scrubErrorMsg');
+        const cancelScrubBtn = document.getElementById('cancelScrubBtn');
+        const scrubSubmitBtn = document.getElementById('scrubSubmitBtn');
+        const mainFilterColumn = document.getElementById('mainFilterColumn');
+        const scrubSaveToDownloadsCheckbox = document.getElementById('scrubSaveToDownloads');
+        const scrubExcludeFeaturePromptCheckbox = document.getElementById('scrubExcludeFeaturePrompt');
+        const darkLaunchButton = document.getElementById('darkLaunchButton');
+
+        // --- Variables ---
+        const defaultPrompt = 'Please give me xx contexts';
+        let userPromptText = defaultPrompt;
+        let repSampleSelection = [];
+        let loadingInterval;
+        const loadingSteps = [ 'Initializing request...', 'Connecting to Snowflake...', 'AI is crafting your list...', 'Generating SQL query...', 'Executing query...', 'Exporting results...', 'Finalizing...', ];
+        let currentStep = 0;
+        const repFilterOptions = ['CSM Tier', 'CS Team', 'Specialty'];
+        const fileNamePattern = /^FEATURE-\d{3,8}$/i;
+        const filterGroups = [ { groupId: 'csmTier-group', name: 'CSM Tier' }, { groupId: 'csTeam-group', name: 'CS Team' }, { groupId: 'clientRelType-group', name: 'Client Relationship Type' }, { groupId: 'specialty-group', name: 'Specialty' }, { groupId: 'clinicalsStatus-group', name: 'Clinicals Status' }, { groupId: 'collectorStatus-group', name: 'Collector Status' }, { groupId: 'communicatorStatus-group', name: 'Communicator Status' }, { groupId: 'hospitalClinicalsStatus-group', name: 'Hospital Clinicals Status', }, { groupId: 'hospitalCollectorStatus-group', name: 'Hospital Collector Status', }, { groupId: 'alphaBetaStatus-group', name: 'Alpha Beta Status' }, { groupId: 'npsStatus-group', name: 'NPS Status' }, ];
+
+        // --- Function Definitions ---
+        function initializePrompt() { if (promptArea) promptArea.value = defaultPrompt; userPromptText = defaultPrompt; if (numContextsInput) numContextsInput.value = ''; }
+        function updateBasePrompt() { const num = numContextsInput ? numContextsInput.value.trim() : ''; userPromptText = num ? `Please give me ${num} contexts` : defaultPrompt; updatePromptFilters(); }
+        function formatValues(values) { if (!values || values.length === 0) return ''; if (values.length === 1) return values[0]; if (values.length === 2) return `${values[0]} or ${values[1]}`; return `${values.slice(0, -1).join(', ')}, or ${values[values.length - 1]}`; }
+        function updatePromptFilters() {
+            if (!promptArea) return;
+            
+            // Check if list scrub mode is enabled
+            if (listScrubCheckbox && listScrubCheckbox.checked) {
+                // List scrub mode - use special format
+                let newPrompt = 'for contexts: ';
+                
+                // Add contexts from the textarea if available
+                if (contextListArea) {
+                    const contexts = contextListArea.value.split(/\r?\n/).map((line) => line.trim()).filter((line) => line && /^\d+$/.test(line));
+                    if (contexts.length > 0) {
+                        newPrompt += contexts.join(', ');
+                    } else {
+                        newPrompt += '[paste your contexts here]';
+                    }
+                }
+                
+                newPrompt += ', please only include if: ';
+                
+                // Build filter criteria for list scrub mode - only use actual user selections
+                let filtersText = [];
+                filterGroups.forEach((fg) => {
+                    const group = document.getElementById(fg.groupId);
+                    if (!group) return;
+                    const checked = group.querySelectorAll('input[type="checkbox"]:checked');
+                    const values = Array.from(checked).map((cb) => cb.value.replace(/–/g, '-'));
+                    if (values.length > 0) {
+                        filtersText.push(`${fg.name} of ${formatValues(values)}`);
+                    }
+                });
+                
+                // Only add filters if user has actually selected some
+                if (filtersText.length > 0) {
+                    newPrompt += filtersText.join('; ');
+                } else {
+                    newPrompt += '[select filters from checkboxes]';
+                }
+                
+                // Add feature number for list scrub mode - only if user has entered one
+                if (featureNumberInput) {
+                    const featureNumber = featureNumberInput.value.trim().toUpperCase();
+                    if (featureNumber && fileNamePattern.test(featureNumber)) {
+                        newPrompt += `. This is for feature number ${featureNumber}.`;
+                    }
+                }
+                
+                // Handle "Do not exclude previous invites" checkbox in list scrub mode (simplified text)
+                if (noExcludePrevInvitesCheckbox && noExcludePrevInvitesCheckbox.checked) {
+                    newPrompt += ` Please don't exclude previous invites.`;
+                }
+                
+                // Add final text for list scrub mode
+                newPrompt += ` Do not include any clients other than those forced in this prompt.`;
+                
+                promptArea.value = newPrompt;
+            } else {
+                // Normal mode - existing logic
+                let filtersText = [];
+                filterGroups.forEach((fg) => {
+                    const group = document.getElementById(fg.groupId);
+                    if (!group) return;
+                    const checked = group.querySelectorAll('input[type="checkbox"]:checked');
+                    const values = Array.from(checked).map((cb) => cb.value.replace(/–/g, '-'));
+                    if (values.length > 0) {
+                        filtersText.push(`${fg.name} of ${formatValues(values)}`);
+                    }
+                });
+                
+                let newPrompt = userPromptText;
+                if (filtersText.length > 0) {
+                    newPrompt += ` with filters: ${filtersText.join('; ')}.`;
+                }
+                
+                if (repSampleCheckbox && repSampleCheckbox.checked && repSampleSelection.length > 0) {
+                    newPrompt += ` Please provide a representative sample based on ${formatValues(repSampleSelection)}.`;
+                }
+                
+                if (contextListArea) {
+                    const contexts = contextListArea.value.split(/\r?\n/).map((line) => line.trim()).filter((line) => line && /^\d+$/.test(line));
+                    if (contexts.length > 0) {
+                        newPrompt += ` Please include contexts: ${contexts.join(', ')}.`;
+                    }
+                }
+                
+                if (featureNumberInput) {
+                    const featureNumber = featureNumberInput.value.trim().toUpperCase();
+                    if (featureNumber && fileNamePattern.test(featureNumber)) {
+                        newPrompt += ` This is for feature number ${featureNumber}.`;
+                    }
+                }
+                
+                if (noExcludePrevInvitesCheckbox && noExcludePrevInvitesCheckbox.checked) {
+                    newPrompt += ` Please don't exclude previous invites but do prioritize based on forced contexts, interested, then voc, then general population.`;
+                }
+                
+                promptArea.value = newPrompt;
+            }
+            
+            clearUserMessage(errorMessageDiv);
+        }
+        function populateRepSampleOptions() { if (!repSampleForm) return; repSampleForm.innerHTML = ''; repFilterOptions.forEach((option, index) => { const isChecked = repSampleSelection.includes(option); const checkboxWrapper = document.createElement('div'); checkboxWrapper.innerHTML = `<input type="checkbox" name="repOption" id="repOption${index}" value="${option}" ${isChecked ? 'checked' : ''}><label for="repOption${index}">${option}</label>`; repSampleForm.appendChild(checkboxWrapper); }); }
+        function showLoading(show, message = '') { if (loadingScreen && loadingStepElem) { if (show) { loadingStepElem.textContent = message || loadingSteps[0]; loadingStepElem.classList.add('active'); loadingScreen.style.display = 'flex'; cycleLoadingSteps(); } else { loadingScreen.style.display = 'none'; clearInterval(loadingInterval); loadingStepElem.classList.remove('active'); } } else { console.error('Loading screen elements not found!'); } }
+        function cycleLoadingSteps() { clearInterval(loadingInterval); currentStep = 0; if (!loadingStepElem) return; loadingStepElem.textContent = loadingSteps[currentStep]; loadingStepElem.classList.add('active'); loadingInterval = setInterval(() => { if (!loadingStepElem) { clearInterval(loadingInterval); return; } loadingStepElem.classList.remove('active'); setTimeout(() => { if (!loadingStepElem) return; currentStep = (currentStep + 1) % loadingSteps.length; loadingStepElem.textContent = loadingSteps[currentStep]; loadingStepElem.classList.add('active'); }, 500); }, 3000); }
+        function displayUserMessage(element, message, isError = true) { if (element) { element.innerHTML = message; element.style.display = 'block'; element.style.backgroundColor = isError ? '#f8d7da' : '#d4edda'; element.style.color = isError ? '#721c24' : '#155724'; element.style.border = `1px solid ${isError ? '#f5c6cb' : '#c3e6cb'}`; } else { console.error('Attempted to display message on a null element.', message); } }
+        function clearUserMessage(element) { if (element) { element.style.display = 'none'; element.innerHTML = ''; } }
+        
+        function showDarkLaunchPopup() {
+            // Create modal HTML if it doesn't exist
+            let darkLaunchModal = document.getElementById('darkLaunchModal');
+            if (!darkLaunchModal) {
+                darkLaunchModal = document.createElement('div');
+                darkLaunchModal.id = 'darkLaunchModal';
+                darkLaunchModal.className = 'modal';
+                darkLaunchModal.innerHTML = `
+                    <div class="modal-content" style="max-width: 600px;">
+                        <h3>🚀 DarkLaunch Configuration Applied</h3>
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: #4e2d82; margin-bottom: 10px;">Pre-configured Filters:</h4>
+                            <ul style="margin: 10px 0; padding-left: 20px; line-height: 1.6;">
+                                <li><strong>CSM Tier:</strong> Small Group, Group</li>
+                                <li><strong>Alpha Beta Status:</strong> Can Contact Client Directly</li>
+                                <li><strong>NPS Status:</strong> Passive, Promoter (excludes Detractors)</li>
+                                <li><strong>CS Team:</strong> All teams except Top 25 Client and Enterprise</li>
+                            </ul>
+                            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; padding: 15px; margin: 15px 0;">
+                                <h4 style="color: #856404; margin: 0 0 10px 0;">⚠️ Enterprise Customer Notice</h4>
+                                <p style="margin: 0; color: #856404; line-height: 1.5;">
+                                    <strong>Enterprise customers are excluded from this DarkLaunch configuration.</strong><br/>
+                                    If you want to add enterprise customers to this launch, you will need to add "Enterprise" to the CSM Tier filter and contact all CSMs prior to activating these customers.
+                                </p>
+                            </div>
+                            <p style="margin: 15px 0; color: #ff0000; font-weight: bold;">
+                                Please make sure to filter for "Live" under the applicable product.
+                            </p>
+                        </div>
+                        <div class="modal-actions">
+                            <div></div>
+                            <div class="modal-actions-right">
+                                <button class="modal-button" onclick="document.getElementById('darkLaunchModal').style.display='none'">Got it!</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(darkLaunchModal);
+                
+                // Add click outside to close
+                darkLaunchModal.addEventListener('click', function(e) {
+                    if (e.target === darkLaunchModal) {
+                        darkLaunchModal.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Show the modal
+            darkLaunchModal.style.display = 'flex';
+        }
+        function showSQLExplanationModal(generatedSQL, explanation, forcedContexts) {
+            if (!sqlExplanationModal || !sqlExplanationText || !rawSqlCode) {
+                console.error('SQL explanation modal elements not found');
+                return false;
+            }
+            
+            // Store the data for later use
+            window.currentSQLData = {
+                sql: generatedSQL,
+                explanation: explanation,
+                forcedContexts: forcedContexts
+            };
+            
+            // Update modal content
+            sqlExplanationText.innerHTML = explanation || 'No explanation available.';
+            rawSqlCode.textContent = generatedSQL || 'No SQL generated.';
+            
+            // Show the modal
+            sqlExplanationModal.style.display = 'flex';
+            return true;
+        }
+        function hideSQLExplanationModal() {
+            if (sqlExplanationModal) {
+                sqlExplanationModal.style.display = 'none';
+            }
+        }
+        function proceedWithSQLExecution() {
+            if (!window.currentSQLData) {
+                console.error('No SQL data available for execution');
+                return;
+            }
+            
+            hideSQLExplanationModal();
+            
+            // Continue with normal form submission flow (DO NOT include explainOnly parameter)
+            const formData = new URLSearchParams();
+            formData.append('var2', document.getElementById('var2').value);
+            formData.append('var3', document.getElementById('var3').value);
+            formData.append('optInOut', document.getElementById('optInOut').value);
+            // Explicitly do NOT append explainOnly - this should trigger normal execution
+            
+            showLoading(true, 'Executing confirmed query...');
+            
+            // Execute the PowerShell script with the confirmed prompt
+            fetch('/run-powershell', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                body: formData.toString(),
+            })
+            .then(async (response) => {
+                if (response.status === 401) {
+                    const data = await response.json().catch(() => ({ message: 'Session expired.' }));
+                    alert(data.message || 'Session expired. Please return home.');
+                    window.location.href = '/login?reason=session_expired';
+                    throw new Error('Unauthorized');
+                }
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || `Request failed: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then((data) => {
+                const trimmedMessage = data.trim() || 'Request submitted.';
+                const sharepointUrl = 'https://athenahealth.sharepoint.com/:f:/s/SharedServicesProductOperations/EiEiEW_zZE9EtSPvNXCYFmEB8qfcFrcAgizY8MCFwoet5w?e=6qndL9';
+                const successHtml = `${trimmedMessage} <br/>File in <a href="${sharepointUrl}" target="_blank">OneDrive folder</a> soon.`;
+                displayUserMessage(finalMessageDiv, successHtml, false);
+                if (resetButton) resetButton.style.display = 'block';
+            })
+            .catch((error) => {
+                if (error.message !== 'Unauthorized') {
+                    console.error('Fetch error:', error);
+                    displayUserMessage(errorMessageDiv, `Error: ${error.message}`);
+                    if (form) form.style.display = 'block';
+                    if (resetButton) resetButton.style.display = 'block';
+                }
+            })
+            .finally(() => {
+                showLoading(false);
+            });
+        }
+        function setupScrubFilters() { if (!scrubFilterColumnContainer || !mainFilterColumn) { console.error('Cannot setup scrub filters: Modal container or main filter column not found.'); return; } const h3 = scrubFilterColumnContainer.querySelector('h3'); let h3Content = h3 ? h3.outerHTML : '<h3>Apply Filters to Your List</h3>'; scrubFilterColumnContainer.innerHTML = h3Content; filterGroups.forEach((fg) => { const mainGroup = document.getElementById(fg.groupId); if (mainGroup) { try { const clonedGroup = mainGroup.cloneNode(true); scrubFilterColumnContainer.appendChild(clonedGroup); clonedGroup.querySelectorAll('input[type="checkbox"]').forEach((cb) => { cb.addEventListener('change', updateScrubPrompt); }); } catch (cloneError) { console.error(`Error cloning filter group ${fg.groupId}:`, cloneError); } } else { console.warn(`Filter group ${fg.groupId} not found in main form.`); } }); }
+        function updateScrubPrompt() { if (!scrubGeneratedPromptDiv || !scrubContextListArea || !scrubFeatureNumberInput || !scrubFilterColumnContainer || !scrubExcludeFeaturePromptCheckbox) { console.error('Cannot update scrub prompt: Required modal elements not found.'); return; } const contextsRaw = scrubContextListArea.value.trim(); const contexts = contextsRaw.split(/\r?\n/).map((line) => line.trim()).filter((line) => line && /^\d+$/.test(line)); let filtersText = []; filterGroups.forEach((fg) => { const group = scrubFilterColumnContainer.querySelector(`#${fg.groupId}`); if (!group) return; const checked = group.querySelectorAll('input[type="checkbox"]:checked'); const values = Array.from(checked).map((cb) => cb.value.replace(/–/g, '-')); if (values.length > 0) { filtersText.push(`${fg.name} of ${formatValues(values)}`); } }); const featureNumber = scrubFeatureNumberInput.value.trim().toUpperCase(); const excludeFeatureFromPrompt = scrubExcludeFeaturePromptCheckbox.checked; let newPrompt = ''; if (contexts.length > 0) { newPrompt += `For contexts: ${contexts.join(', ')}.`; } else { newPrompt += 'For contexts: [Please paste contexts].'; } if (filtersText.length > 0) { newPrompt += ` Only include if: ${filtersText.join('; ')}.`; } if (!excludeFeatureFromPrompt) { if (featureNumber && fileNamePattern.test(featureNumber)) { newPrompt += ` This is for ${featureNumber}.`; } else { newPrompt += ' This is for [Enter Valid Feature Number].'; } } scrubGeneratedPromptDiv.textContent = newPrompt; clearUserMessage(scrubErrorMsgDiv); }
+
+
+        // --- Event Listeners Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+          try { // Wrap listener content in try...catch for better error reporting
+              initializePrompt();
+
+              // --- Main Form Submit Listener ---
+              if (form) {
+                form.addEventListener('submit', function (e) {
+                   e.preventDefault();
+                  clearUserMessage(finalMessageDiv); clearUserMessage(errorMessageDiv);
+                  const featureNumberElem = document.getElementById('featureNumber'); const stageElem = document.getElementById('stage'); const waveNumberElem = document.getElementById('waveNumber'); const var3Elem = document.getElementById('var3'); const var2Elem = document.getElementById('var2'); const optInOutElem = document.getElementById('optInOut');
+                  if (!featureNumberElem || !stageElem || !waveNumberElem || !var3Elem || !var2Elem || !optInOutElem) { displayUserMessage(errorMessageDiv, 'Error: Critical form elements missing.'); return; }
+                  const featureNumber = featureNumberElem.value.trim().toUpperCase(); const stage = stageElem.value; const waveNumber = waveNumberElem.value; const optInOut = optInOutElem.value;
+                  if (!fileNamePattern.test(featureNumber)) { displayUserMessage(errorMessageDiv, 'Error: Feature Number format must be FEATURE-123...'); featureNumberElem.focus(); return; }
+                  featureNumberElem.value = featureNumber; // Ensure it's uppercase
+                  if (!stage) { displayUserMessage(errorMessageDiv, 'Error: Stage selection required.'); return; } if (!waveNumber) { displayUserMessage(errorMessageDiv, 'Error: Wave Number selection required.'); return; }
+                  const combinedFileName = `${featureNumber}_${stage}_${waveNumber}`; var3Elem.value = combinedFileName; const finalPrompt = var2Elem.value;
+                  if (finalPrompt.includes('xx contexts') && !(numContextsInput?.value?.trim())) { displayUserMessage(errorMessageDiv, 'Error: Please specify number of contexts.'); numContextsInput?.focus(); return; }
+                  form.style.display = 'none'; if (resetButton) resetButton.style.display = 'none'; showLoading(true, 'Generating SQL and explanation...');
+                  const formData = new URLSearchParams(); formData.append('var2', finalPrompt); formData.append('var3', combinedFileName); formData.append('optInOut', optInOut); formData.append('explainOnly', 'true');
+                  // First, get SQL explanation without executing
+                  fetch('/run-powershell', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' }, body: formData.toString(), })
+                    .then(async (response) => {
+                      if (response.status === 401) { const data = await response.json().catch(()=>({message: 'Session expired.'})); alert(data.message || 'Session expired. Please return home.'); window.location.href = '/login?reason=session_expired'; throw new Error('Unauthorized'); }
+                      if (!response.ok) { const errorText = await response.text(); throw new Error(errorText || `Request failed: ${response.status}`); } return response.text();
+                    })
+                    .then((data) => {
+                      showLoading(false);
+                      console.log('🔍 DEBUG: Full response received:', data.substring(0, 1000));
+                      console.log('🔍 DEBUG: Response contains JSON start?', data.includes('{'));
+                      console.log('🔍 DEBUG: Response contains sql_explanation?', data.includes('sql_explanation'));
+                      console.log('🔍 DEBUG: Response contains generated_sql?', data.includes('generated_sql'));
+                      
+                      try {
+                        // Extract JSON from PowerShell output using robust strategy
+                        let jsonData = null;
+                        
+                        // Strategy: Find JSON using regex pattern
+                        console.log('🔍 DEBUG: Full response length:', data.length);
+                        console.log('🔍 DEBUG: Response preview:', data.substring(data.length - 500));
+                        
+                        // Look for JSON pattern in the response - match complete JSON object
+                        const jsonMatch = data.match(/\{[\s\S]*?"sql_explanation"[\s\S]*?"generated_sql"[\s\S]*?\}/g);
+                        console.log('🔍 DEBUG: JSON regex match found:', !!jsonMatch);
+                        
+                        if (jsonMatch && jsonMatch.length > 0) {
+                          try {
+                            let jsonText = jsonMatch[jsonMatch.length - 1]; // Get the last (most complete) match
+                            console.log('🔍 DEBUG: Raw extracted JSON:', jsonText.substring(0, 200) + '...');
+                            
+                            // Aggressive JSON sanitization to handle all PowerShell issues
+                            jsonText = jsonText
+                              // Remove all actual control characters
+                              .replace(/[\x00-\x1F\x7F]/g, ' ')
+                              // Remove escape sequences for control characters
+                              .replace(/\\[nrtfbv]/g, ' ')
+                              // Fix common escape issues
+                              .replace(/\\'/g, "'")
+                              .replace(/\\\\/g, '/')
+                              // Clean up whitespace
+                              .replace(/\s+/g, ' ')
+                              .replace(/"\s+"/g, '" "')
+                              .trim();
+        
+                            console.log('🔍 DEBUG: Aggressively cleaned JSON:', jsonText.substring(0, 200) + '...');
+        
+                            // Ultra-robust: Extract fields using regex instead of JSON.parse()
+                            console.log('🔍 DEBUG: Using regex extraction to bypass JSON parsing issues...');
+                            
+                            // Extract sql_explanation using regex
+                            const explanationMatch = jsonText.match(/"sql_explanation"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/s);
+                            const sqlMatch = jsonText.match(/"generated_sql"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/s);
+                            
+                            if (explanationMatch && sqlMatch) {
+                              // Clean up the extracted content
+                              const explanation = explanationMatch[1]
+                                .replace(/\\n/g, ' ')
+                                .replace(/\\r/g, ' ')
+                                .replace(/\\t/g, ' ')
+                                .replace(/\\"/g, '"')
+                                .replace(/\\\\/g, '/')
+                                .replace(/\s+/g, ' ')
+                                .trim();
+                              
+                              const sql = sqlMatch[1]
+                                .replace(/\\n/g, ' ')
+                                .replace(/\\r/g, ' ')
+                                .replace(/\\t/g, ' ')
+                                .replace(/\\"/g, '"')
+                                .replace(/\\\\/g, '/')
+                                .replace(/\s+/g, ' ')
+                                .trim();
+                              
+                              jsonData = {
+                                sql_explanation: explanation,
+                                generated_sql: sql,
+                                forcedContextIDs: []
+                              };
+                              
+                              console.log('✅ DEBUG: Regex extraction successful!', {
+                                hasExplanation: !!explanation,
+                                hasSQL: !!sql,
+                                explanationLength: explanation.length
+                              });
+                            } else {
+                              console.error('❌ DEBUG: Regex extraction failed - could not find expected fields');
+                              jsonData = null;
+                            }
+        
+                            console.log('🔍 DEBUG: JSON extraction successful:', !!jsonData);
+        
+                            if (jsonData) {
+                              console.log('🔍 DEBUG: Parsed JSON data:', {
+                                hasSQL: !!jsonData.generated_sql,
+                                hasExplanation: !!jsonData.sql_explanation,
+                                explanationLength: jsonData.sql_explanation ? jsonData.sql_explanation.length : 0
+                              });
+                              
+                              if (jsonData.generated_sql && jsonData.sql_explanation) {
+                                console.log('🔍 DEBUG: Calling showSQLExplanationModal...');
+                                // Show explanation modal
+                                const modalResult = showSQLExplanationModal(jsonData.generated_sql, jsonData.sql_explanation, jsonData.forcedContextIDs || []);
+                                console.log('🔍 DEBUG: Modal display result:', modalResult);
+                                if (modalResult) {
+                                  return; // Modal shown successfully
+                                } else {
+                                  console.error('❌ DEBUG: Modal failed to display!');
+                                }
+                              } else {
+                                console.error('❌ DEBUG: Missing SQL or explanation in parsed data');
+                              }
+                            } else {
+                              console.error('❌ DEBUG: Failed to extract valid JSON data');
+                            }
+                          } catch (parseError) {
+                            // If not JSON, treat as regular success message and proceed normally
+                            console.error('❌ DEBUG: JSON parsing failed:', parseError);
+                            console.log('🔍 DEBUG: Response data preview:', data.substring(0, 500) + '...');
+                          }
+                        } else {
+                          console.error('❌ DEBUG: No JSON pattern matched in response');
+                        }
+                      } catch (outerError) {
+                        // Handle any unexpected errors in JSON processing
+                        console.error('❌ DEBUG: Outer JSON processing error:', outerError);
+                      }
+                      
+                      // Fallback: show success message if modal failed or no explanation data
+                      const trimmedMessage = data.trim() || 'Request submitted.';
+                      const sharepointUrl = 'https://athenahealth.sharepoint.com/:f:/s/SharedServicesProductOperations/EiEiEW_zZE9EtSPvNXCYFmEB8qfcFrcAgizY8MCFwoet5w?e=6qndL9';
+                      const successHtml = `${trimmedMessage} <br/>File in <a href="${sharepointUrl}" target="_blank">OneDrive folder</a> soon.`;
+                      displayUserMessage(finalMessageDiv, successHtml, false);
+                      if (resetButton) resetButton.style.display = 'block';
+                    })
+                    .catch((error) => { if (error.message !== 'Unauthorized') { console.error('Fetch error:', error); displayUserMessage(errorMessageDiv, `Error: ${error.message}`); if (form) form.style.display = 'block'; /* Restore form on error */ if (resetButton) resetButton.style.display = 'block'; }})
+                    .finally(() => { showLoading(false); });
+                });
+              }
+
+              // --- Other Listeners ---
+              if (resetButton) { resetButton.addEventListener('click', () => { window.location.reload(); }); }
+              if (repSampleCheckbox) { repSampleCheckbox.addEventListener('change', () => { if (repSampleCheckbox.checked) { populateRepSampleOptions(); if(repSampleModal) repSampleModal.style.display = "flex"; } else { repSampleSelection = []; updatePromptFilters(); } }); }
+              if (repSampleConfirm) { repSampleConfirm.addEventListener('click', () => { repSampleSelection = Array.from(document.querySelectorAll('input[name="repOption"]:checked')).map(el => el.value); updatePromptFilters(); if(repSampleModal) repSampleModal.style.display = "none"; }); }
+              if (repSampleModal) { repSampleModal.addEventListener('click', (e) => { if(e.target === repSampleModal) { repSampleModal.style.display = "none"; if(repSampleCheckbox) repSampleCheckbox.checked = repSampleSelection.length > 0; } }); }
+              if (scrubListButton) { scrubListButton.addEventListener('click', () => { setupScrubFilters(); if (scrubFeatureNumberInput) scrubFeatureNumberInput.value = ''; if (scrubStageSelect) scrubStageSelect.value = 'Alpha'; if (scrubWaveNumberSelect) scrubWaveNumberSelect.value = '1'; if (scrubContextListArea) scrubContextListArea.value = ''; if (scrubSaveToDownloadsCheckbox) scrubSaveToDownloadsCheckbox.checked = false; if (scrubExcludeFeaturePromptCheckbox) scrubExcludeFeaturePromptCheckbox.checked = false; clearUserMessage(scrubErrorMsgDiv); updateScrubPrompt(); if (scrubListModal) scrubListModal.style.display = 'flex'; }); }
+              if (scrubFeatureNumberInput) scrubFeatureNumberInput.addEventListener('input', updateScrubPrompt);
+              if (scrubStageSelect) scrubStageSelect.addEventListener('change', updateScrubPrompt);
+              if (scrubWaveNumberSelect) scrubWaveNumberSelect.addEventListener('change', updateScrubPrompt);
+              if (contextListArea) { contextListArea.addEventListener('input', updatePromptFilters); } // Listener for main form context list
+              if (scrubContextListArea) scrubContextListArea.addEventListener('input', updateScrubPrompt); // Listener for scrub modal context list
+              if (noExcludePrevInvitesCheckbox) { noExcludePrevInvitesCheckbox.addEventListener('change', updatePromptFilters); } // Listener for Do Not Exclude Previous Invites checkbox
+              if (listScrubCheckbox) { listScrubCheckbox.addEventListener('change', updatePromptFilters); } // Listener for List Scrub checkbox
+              if (scrubExcludeFeaturePromptCheckbox) { scrubExcludeFeaturePromptCheckbox.addEventListener('change', updateScrubPrompt); }
+              // SQL Explanation Modal Event Listeners
+              if (confirmSqlBtn) { confirmSqlBtn.addEventListener('click', proceedWithSQLExecution); }
+              if (retrySqlBtn) { retrySqlBtn.addEventListener('click', () => { hideSQLExplanationModal(); if (form) form.style.display = 'block'; if (resetButton) resetButton.style.display = 'block'; }); }
+              if (sqlExplanationModal) { sqlExplanationModal.addEventListener('click', (e) => { if (e.target === sqlExplanationModal) { hideSQLExplanationModal(); if (form) form.style.display = 'block'; if (resetButton) resetButton.style.display = 'block'; } }); }
+              if (cancelScrubBtn) { cancelScrubBtn.addEventListener('click', () => { if(scrubListModal) scrubListModal.style.display = 'none'; }); }
+              if (scrubListModal) { scrubListModal.addEventListener('click', (e) => { if (e.target === scrubListModal) { scrubListModal.style.display = 'none'; } }); }
+
+              // --- Scrub Submit Button Listener (Corrected Fetch and Manual Download) ---
+              if (scrubSubmitBtn) {
+                  scrubSubmitBtn.addEventListener('click', (e) => {
+                      e.preventDefault();
+                      clearUserMessage(scrubErrorMsgDiv);
+                      clearUserMessage(finalMessageDiv);
+                      clearUserMessage(errorMessageDiv);
+
+                      const featureNumber = scrubFeatureNumberInput?.value?.trim()?.toUpperCase();
+                      const stage = scrubStageSelect?.value;
+                      const waveNumber = scrubWaveNumberSelect?.value;
+                      const contextList = scrubContextListArea?.value?.trim();
+                      const generatedPrompt = scrubGeneratedPromptDiv?.textContent;
+                      const saveToDownloads = scrubSaveToDownloadsCheckbox?.checked || false;
+                      const excludeFeaturePrompt = scrubExcludeFeaturePromptCheckbox?.checked || false;
+
+                      let errors = [];
+                      // (Validation logic)
+                      if (!excludeFeaturePrompt) { if (!featureNumber) { errors.push('Feature Number required unless exclusion is disabled.'); } else if (!fileNamePattern.test(featureNumber)) { errors.push('Invalid Feature Number format.'); } } else if (!featureNumber) { errors.push('Feature Number required for filename (even if excluded from prompt).'); } else if (!fileNamePattern.test(featureNumber)) { errors.push('Invalid Feature Number format for filename.'); } if (!stage) { errors.push('Stage required.'); } if (!waveNumber) { errors.push('Wave Number required.'); } if (!contextList) { errors.push('Context ID list required.'); } else { const contexts = contextList.split(/\r?\n/).map(line => line.trim()).filter(line => line); if (contexts.length === 0) { errors.push('Context ID list cannot be empty.'); } else if (contexts.some(ctx => !/^\d+$/.test(ctx))) { errors.push('Invalid Context IDs found. Please use numbers only, one per line.'); } } if (!generatedPrompt || generatedPrompt.includes('[Please paste contexts]')) { errors.push('Ensure Context IDs are provided.'); } if (!generatedPrompt || generatedPrompt.includes('[Enter Valid Feature Number]')) { errors.push('Ensure a valid Feature Number is provided if exclusion is not disabled.'); }
+
+                      if (errors.length > 0) {
+                          displayUserMessage(scrubErrorMsgDiv, `Error: ${errors.join(' ')}`);
+                          return;
+                      }
+
+                      if (scrubListModal) scrubListModal.style.display = 'none';
+                      if (form) form.style.display = 'none';
+                      if (resetButton) resetButton.style.display = 'none';
+                      showLoading(true, 'Submitting scrub request...');
+
+                      const combinedFileName = `${featureNumber}_${stage}_${waveNumber}`; // Define here
+                      const formData = new URLSearchParams();
+                      formData.append('var2', generatedPrompt);
+                      formData.append('var3', combinedFileName);
+                      formData.append('saveToDownloads', saveToDownloads);
+
+                      // --- Fetch Request with Manual Download Logic ---
+                      // NOTE: The /run-list-filter endpoint seems correct for the SCRUB MODAL based on previous context.
+                      fetch('/run-list-filter', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                          body: formData.toString(),
+                      })
+                      .then(async (response) => { // Must be async
+                          // Auth check
+                          if (response.status === 401) { const data = await response.json().catch(() => ({ message: 'Session expired or unauthorized.' })); alert(data.message || 'Session expired. Please log in again.'); window.location.href = '/login?reason=session_expired'; throw new Error('Unauthorized'); }
+
+                          const disposition = response.headers.get('Content-Disposition');
+
+                          if (response.ok && disposition && disposition.includes('attachment')) {
+                              // Manual Download
+                              console.log('Received file download response. Attempting manual trigger.');
+                              displayUserMessage(finalMessageDiv, "Processing download...", false);
+                              if (resetButton) resetButton.style.display = 'block';
+                              try {
+                                  const blob = await response.blob(); // Await blob
+                                  const filenameMatch = disposition.match(/filename="?([^"]+)"?/i);
+                                  const filename = filenameMatch && filenameMatch[1] ? filenameMatch[1] : `${combinedFileName}.xlsx`; // Use combinedFileName here
+                                  console.log(`Extracted/Generated filename: ${filename}`);
+
+                                  const url = window.URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.style.display = 'none'; a.href = url; a.download = filename;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  console.log('Manual download link clicked.');
+                                  window.URL.revokeObjectURL(url); a.remove();
+                                  displayUserMessage(finalMessageDiv, `Download initiated for ${filename}. Check your browser's downloads.`, false);
+                              } catch (manualDownloadError) { console.error("Error attempting manual download:", manualDownloadError); displayUserMessage(errorMessageDiv, "Failed to process file for download. See console.", true); }
+                              return null; // Signal download handled
+                          }
+
+                          // --- Text Response Case ---
+                          const text = await response.text(); // Await text
+                          if (!response.ok) { throw new Error(text || `Request failed: ${response.status}`); }
+                          return text;
+                      })
+                      .then((data) => {
+                          if (data === null) { console.log("Manual download attempted, skipping text processing."); return; }
+                          // Standard OneDrive Success
+                          const trimmedMessage = data.trim() || 'Scrub request submitted successfully.';
+                          const sharepointUrl = 'https://athenahealth.sharepoint.com/:f:/s/SharedServicesProductOperations/EiEiEW_zZE9EtSPvNXCYFmEB8qfcFrcAgizY8MCFwoet5w?e=6qndL9';
+                          const successHtml = `${trimmedMessage}<br/>File should appear in the <a href="${sharepointUrl}" target="_blank">shared OneDrive folder</a> shortly.`;
+                          displayUserMessage(finalMessageDiv, successHtml, false);
+                          if (resetButton) resetButton.style.display = 'block';
+                      })
+                      .catch((error) => {
+                          if (error.message !== 'Unauthorized') { console.error('Error during scrub request or download processing:', error); displayUserMessage(errorMessageDiv, `Scrub Error: ${error.message}`); if (resetButton) resetButton.style.display = 'block'; /* Restore reset button */ if (form) form.style.display = 'block'; /* Restore main form on scrub error too */ }
+                      })
+                      .finally(() => {
+                          showLoading(false);
+                          // Don't reset scrubSaveToDownloadsCheckbox here, let the user decide next time
+                      });
+                  });
+              }
+
+              // --- ***** ADDED: Add Listeners for Interactive Prompt Generation ***** ---
+              if (numContextsInput) {
+                  numContextsInput.addEventListener('input', updateBasePrompt);
+              }
+              // Add listener for feature number affecting the main prompt
+              if (featureNumberInput) {
+                  featureNumberInput.addEventListener('input', updatePromptFilters);
+              }
+
+              filterGroups.forEach(fg => {
+                  const groupElement = document.getElementById(fg.groupId);
+                  if (groupElement) {
+                      const checkboxes = groupElement.querySelectorAll('input[type="checkbox"]');
+                      checkboxes.forEach(cb => {
+                          // Ensure we don't double-attach if cloning logic caused issues
+                          // Exclude the repSample checkbox which has its own specific listener
+                          if (cb.id !== 'repSample') {
+                              cb.addEventListener('change', updatePromptFilters);
+                          }
+                      });
+                  } else {
+                      console.warn(`Filter group element not found for interactive listener: ${fg.groupId}`);
+                  }
+              });
+              // --- ***** END ADDED SECTION ***** ---
+
+              // --- DarkLaunch Button Event Listener ---
+              if (darkLaunchButton) {
+                  darkLaunchButton.addEventListener('click', function() {
+                      console.log('DarkLaunch button clicked');
+                      
+                      // Add visual feedback - change button appearance to show it's active
+                      darkLaunchButton.style.backgroundColor = '#27ae60'; // Green to indicate active
+                      darkLaunchButton.style.boxShadow = '0 0 10px rgba(39, 174, 96, 0.5)'; // Subtle glow effect
+                      darkLaunchButton.innerHTML = '✅ DarkLaunch Active';
+                      
+                      // Add a subtle pulse animation
+                      darkLaunchButton.style.animation = 'darkLaunchPulse 2s ease-in-out';
+                      
+                      // Preserve existing selections - only modify what DarkLaunch needs
+                      // No clearing of checkboxes - we'll only check the ones we need
+                      
+                      // Pre-set CSM Tier: Small Group, Group
+                      const csmTierGroup = document.getElementById('csmTier-group');
+                      if (csmTierGroup) {
+                          const smallGroupCb = csmTierGroup.querySelector('input[value="Small Group"]');
+                          const groupCb = csmTierGroup.querySelector('input[value="Group"]');
+                          if (smallGroupCb) smallGroupCb.checked = true;
+                          if (groupCb) groupCb.checked = true;
+                      }
+                      
+                      // Pre-set Alpha Beta Status: Can Contact Client Directly
+                      const alphaBetaGroup = document.getElementById('alphaBetaStatus-group');
+                      if (alphaBetaGroup) {
+                          const canContactCb = alphaBetaGroup.querySelector('input[value="Can Contact Client Directly"]');
+                          if (canContactCb) canContactCb.checked = true;
+                      }
+                      
+                      // Pre-set NPS Status: Passive, Promoter
+                      const npsGroup = document.getElementById('npsStatus-group');
+                      if (npsGroup) {
+                          const passiveCb = npsGroup.querySelector('input[value="Passive"]');
+                          const promoterCb = npsGroup.querySelector('input[value="Promoter"]');
+                          if (passiveCb) passiveCb.checked = true;
+                          if (promoterCb) promoterCb.checked = true;
+                      }
+                      
+                      // Pre-set CS Team: All except Top 25 Client and Enterprise
+                      const csTeamGroup = document.getElementById('csTeam-group');
+                      if (csTeamGroup) {
+                          const allCsTeamCheckboxes = csTeamGroup.querySelectorAll('input[type="checkbox"]');
+                          allCsTeamCheckboxes.forEach(cb => {
+                              if (cb.value !== 'Top 25 Client' && cb.value !== 'Enterprise') {
+                                  cb.checked = true;
+                              }
+                          });
+                      }
+                      
+                      // Set DarkLaunch-specific prompt
+                      if (promptArea) {
+                          promptArea.value = 'Please give me xx contexts for DarkLaunch - exclude enterprise customers in initial waves, focus on Small Group and Group tiers only, exclude detractors, and avoid Top 25 clients.';
+                      }
+                      
+                      // Update the filters in the prompt
+                      updatePromptFilters();
+                      
+                      // Show popup notification
+                      showDarkLaunchPopup();
+                  });
+              }
+
+              console.log('list_tools.html listeners attached successfully.'); // Confirmation
+
+          } catch (e) {
+               console.error("Error during DOMContentLoaded event listener setup:", e);
+               const body = document.querySelector('body');
+               if (body) { body.innerHTML = `<div style="color: red; padding: 20px; font-family: sans-serif;"><h1>Initialization Error</h1><p>Could not initialize the page scripts. Check the browser console (F12) for details.</p><pre>${e.message}\n${e.stack}</pre></div>`; }
+          }
+        }); // End DOMContentLoaded listener
+      </script>
+  </body>
+</html>

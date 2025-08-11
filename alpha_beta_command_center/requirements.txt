@@ -1,0 +1,3 @@
+# requirements.txt (for Qualtrics script)
+requests>=2.20.0
+snowflake-connector-python[pandas]>=3.0.0 

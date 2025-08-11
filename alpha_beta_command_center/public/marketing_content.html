@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Marketing Content Generation</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        /* --- ALL EXISTING STYLES --- */
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; background-color: #f9f9f9; color: #333; display: flex; flex-direction: column; align-items: center; padding-bottom: 70px; position: relative; min-height: 100vh; }
+        input[type="text"], textarea, input[type="number"], select { font-family: Arial, sans-serif; }
+        a { color: #4e2d82; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        button { cursor: pointer; }
+        .header { background: #4e2d82; color: #fff; padding: 10px 20px; text-align: center; width: 100%; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between;}
+        .header h1 { margin: 0 auto; font-size: 1.6em; font-weight: 700; text-shadow: 1px 1px 4px rgba(0,0,0,0.3); }
+        .header .nav-link { color: #fff; background-color: #6c757d; padding: 8px 15px; border-radius: 4px; font-size: 14px; transition: background-color 0.2s; border: 1px solid #fff; }
+        .header .nav-link:hover { background-color: #5a6268; text-decoration: none; }
+        .mc-container { max-width: 1100px; width: 100%; margin: 20px auto; padding: 0 15px; display: flex; flex-direction: column; gap: 25px; }
+        .username-section { display: none; /* Hide username input section */}
+        .content-section { background: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .content-section h2 { margin-top: 0; color: #4e2d82; font-size: 1.3em; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        .table-container { overflow-x: auto; max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { border: 1px solid #ddd; padding: 8px 10px; vertical-align: middle; text-align: left; word-break: break-word; }
+        th { background-color: #f2f2f2; color: #4e2d82; font-weight: 600; position: sticky; top: 0; z-index: 1; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #e9ecef; }
+        .action-button { background-color: #28a745; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: background-color 0.2s; }
+        .action-button:hover { background-color: #218838; }
+        .message-area { padding: 15px; text-align: center; color: #6c757d; font-style: italic; }
+        .search-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; align-items: end; margin-bottom: 20px; }
+        .search-form div { display: flex; flex-direction: column; }
+        .search-form label { font-size: 13px; margin-bottom: 5px; color: #555; font-weight: 500; }
+        .search-form input, .search-form select { width: 100%; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
+        .search-form button { background-color: #4e2d82; color: #fff; border: none; padding: 8px 20px; height: 37px; border-radius: 4px; font-size: 14px; font-weight: bold; transition: background-color 0.2s; justify-self: start; }
+        .search-form button:hover { background-color: #3c2369; }
+        #searchErrorMsg { color: #dc3545; font-size: 13px; font-weight: 500; min-height: 1.2em; text-align: left; grid-column: 1 / -1; margin-top: 5px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
+        .modal .modal-content { background: #fff; padding: 20px; border-radius: 8px; width: 90%; max-width: 450px; text-align: left; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 85vh; display: flex; flex-direction: column; }
+        .modal .modal-content h3 { margin-top: 0; font-size: 18px; margin-bottom: 15px; color: #4e2d82; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        #templateSelectForm { margin: 15px 0; }
+        #templateSelectForm .template-option { display: block; margin-bottom: 12px; cursor: pointer; }
+        #templateSelectForm .template-option input[type="radio"] { margin-right: 10px; vertical-align: middle; width: 16px; height: 16px; }
+        #templateSelectForm .template-option label { font-size: 15px; vertical-align: middle; color: #333; }
+        .modal .modal-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 15px; border-top: 1px solid #eee; align-items: center; }
+        .modal .modal-button { background-color: #4e2d82; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.2s; }
+        .modal .modal-button:hover { background-color: #3c2369; }
+        .modal .modal-button.secondary { background-color: #6c757d; }
+        .modal .modal-button.secondary:hover { background-color: #5a6268; }
+        .loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 9999; }
+        .spinner { border: 8px solid #ccc; border-top: 8px solid #4e2d82; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .step { font-size: 16px; color: #fff; opacity: 0; transition: opacity 0.5s; text-align: center; max-width: 80%; line-height: 1.4; }
+        .step.active { opacity: 1; }
+        #finalMessage, #errorMessage { display: none; margin: 15px auto; padding: 10px 15px; border-radius: 4px; font-size: 14px; font-weight: 500; text-align: center; max-width: 600px; width: 90%; }
+        #finalMessage { color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; }
+        #finalMessage a { color: #0056b3; text-decoration: underline; }
+        #errorMessage { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .logo-container { position: fixed; bottom: 10px; right: 10px; z-index: 999; }
+        .logo-container img { width: 120px; height: auto; opacity: 0.8; }
+    </style>
+     <!-- Session Check Script -->
+  <!-- Session Check Script for Tool Page -->
+  <script>
+    (async () => {
+        try {
+            // *** FIXED: Use the correct auth endpoint ***
+            const response = await fetch('/auth/check-session');
+            if (!response.ok) {
+                 // If the check itself fails (e.g., server error), redirect to login
+                 console.error(`Session check failed with status: ${response.status}`);
+                 throw new Error(`Session check failed`); // Go to catch block
+            }
+            const data = await response.json();
+            if (!data.loggedIn) {
+                // If check succeeds but user is not logged in, redirect to login
+                console.log('User session invalid/expired, redirecting to login.');
+                // *** FIXED: Redirect to the login page route ***
+                window.location.href = '/login';
+            } else {
+                 // User is logged in, allow the page to continue loading
+                 console.log(`Tool Page: User ${data.username} is logged in. Proceeding.`);
+            }
+        } catch (error) {
+            // Catch fetch errors or the thrown error from !response.ok
+            console.error('Error during tool page session check, redirecting to login:', error);
+            // *** FIXED: Redirect to the login page route ***
+            window.location.href = '/login';
+        }
+    })();
+  </script>
+    <!-- End Session Check Script -->
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <a href="/" class="nav-link">Back to Home</a>
+        <h1>Marketing Content Generation</h1>
+        <div></div> <!-- Placeholder for spacing -->
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="mc-container">
+
+         <!-- MESSAGES -->
+        <div id="finalMessage"></div>
+        <div id="errorMessage"></div>
+
+        <!-- User's Lists Section -->
+        <div class="content-section">
+            <h2>Your Generated Lists</h2>
+            <div class="table-container" id="userListTableContainer">
+                <table id="userListTable">
+                    <thead><!-- Populated by JS --></thead>
+                    <tbody><!-- Populated by JS --></tbody>
+                </table>
+            </div>
+            <div class="message-area" id="userListMessage">Loading your lists...</div> <!-- Updated initial message -->
+        </div>
+
+        <!-- Search Section -->
+        <div class="content-section">
+            <h2>Search for Other Lists</h2>
+            <div class="search-form" id="searchForm">
+                <div><label for="searchFeatureNumber">Feature Number:</label><input type="text" id="searchFeatureNumber" placeholder="FEATURE-123" pattern="FEATURE-\d{3,8}"></div>
+                <div><label for="searchStage">Stage:</label><select id="searchStage"><option value="" selected>Any Stage</option><option value="Alpha">Alpha</option><option value="Beta">Beta</option><option value="DarkAlpha">DarkAlpha</option><option value="DarkBeta">DarkBeta</option><option value="AlphaBundled">AlphaBundled</option><option value="BetaBundled">BetaBundled</option><option value="AlphaBatched">AlphaBatched</option><option value="BetaBatched">BetaBatched</option></select></div>
+                <div><label for="searchWaveNumber">Wave Number:</label><select id="searchWaveNumber"><option value="" selected>Any Wave</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
+                <div><label> </label><button id="searchListsBtn">Search Lists</button></div>
+                 <div id="searchErrorMsg"></div>
+            </div>
+            <div class="table-container" id="searchListTableContainer">
+                 <table id="searchListTable">
+                    <thead><!-- Populated by JS --></thead>
+                    <tbody><!-- Populated by JS --></tbody>
+                </table>
+            </div>
+             <div class="message-area" id="searchListMessage">Enter search criteria and click "Search Lists".</div>
+        </div>
+
+    </div> <!-- End mc-container -->
+
+    <!-- LOADING SCREEN -->
+    <div class="loading-screen" id="loadingScreen"><div class="spinner"></div><div class="step" id="loadingStep"></div></div>
+
+    <!-- LOGO -->
+    <div class="logo-container" id="logo-container"><img src="Product Operations Logo Small.png" alt="Product Operations Logo" /></div>
+
+    <!-- TEMPLATE SELECTION MODAL -->
+    <div id="templateSelectModal" class="modal">
+      <div class="modal-content">
+        <h3>Select Invite Template</h3>
+        <form id="templateSelectForm">
+          <div class="template-option"><input type="radio" id="templateAlphaOptIn" name="templateOption" value="InviteTemplate_AlphaOptIn" checked><label for="templateAlphaOptIn">Alpha Opt-In</label></div>
+          <div class="template-option"><input type="radio" id="templateAlphaOptOut" name="templateOption" value="InviteTemplate_AlphaOptOut"><label for="templateAlphaOptOut">Alpha Opt-Out</label></div>
+          <div class="template-option"><input type="radio" id="templateBetaOptIn" name="templateOption" value="InviteTemplate_BetaOptIn"><label for="templateBetaOptIn">Beta Opt-In</label></div>
+          <div class="template-option"><input type="radio" id="templateBetaOptOut" name="templateOption" value="InviteTemplate_BetaOptOut"><label for="templateBetaOptOut">Beta Opt-Out</label></div>
+        </form>
+        <input type="hidden" id="selectedListForTemplate">
+        <div class="modal-actions"><button class="modal-button secondary" id="cancelTemplateBtn">Cancel</button><button class="modal-button" id="confirmTemplateBtn">Confirm Selection</button></div>
+      </div>
+    </div>
+
+    <script>
+        // --- Get Elements ---
+        const userListTable = document.getElementById('userListTable');
+        const userListTableBody = userListTable?.querySelector('tbody');
+        const userListMessage = document.getElementById('userListMessage');
+        const searchForm = document.getElementById('searchForm');
+        const searchFeatureNumberInput = document.getElementById('searchFeatureNumber');
+        const searchStageSelect = document.getElementById('searchStage');
+        const searchWaveNumberSelect = document.getElementById('searchWaveNumber');
+        const searchListsBtn = document.getElementById('searchListsBtn');
+        const searchErrorMsg = document.getElementById('searchErrorMsg');
+        const searchListTable = document.getElementById('searchListTable');
+        const searchListTableBody = searchListTable?.querySelector('tbody');
+        const searchListMessage = document.getElementById('searchListMessage');
+        const templateSelectModal = document.getElementById('templateSelectModal');
+        const templateSelectForm = document.getElementById('templateSelectForm');
+        const confirmTemplateBtn = document.getElementById('confirmTemplateBtn');
+        const cancelTemplateBtn = document.getElementById('cancelTemplateBtn');
+        const selectedListInput = document.getElementById('selectedListForTemplate');
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingStepElem = document.getElementById('loadingStep');
+        const finalMessageDiv = document.getElementById('finalMessage');
+        const errorMessageDiv = document.getElementById('errorMessage');
+
+        // --- Variables ---
+        let loadingInterval;
+        const loadingSteps = [ "Initializing...", "Connecting...", "Fetching...", "Processing...", "Finalizing..." ];
+        let currentStep = 0;
+        const fileNamePattern = /^FEATURE-\d{3,8}$/i;
+
+        // --- Utility Functions ---
+        function showLoading(show, message = "") { if (loadingScreen && loadingStepElem) { if (show) { loadingStepElem.textContent = message || loadingSteps[0]; loadingStepElem.classList.add('active'); loadingScreen.style.display = 'flex'; cycleLoadingSteps(); } else { loadingScreen.style.display = 'none'; clearInterval(loadingInterval); loadingStepElem.classList.remove('active'); } } else { console.error("Loading screen elements not found!"); } }
+        function cycleLoadingSteps() { clearInterval(loadingInterval); currentStep = 0; if (!loadingStepElem) return; loadingStepElem.textContent = loadingSteps[currentStep]; loadingStepElem.classList.add('active'); loadingInterval = setInterval(() => { if (!loadingStepElem) { clearInterval(loadingInterval); return; }; loadingStepElem.classList.remove('active'); setTimeout(() => { if (!loadingStepElem) return; currentStep = (currentStep + 1) % loadingSteps.length; loadingStepElem.textContent = loadingSteps[currentStep]; loadingStepElem.classList.add('active'); }, 2500); }, 3000); }
+        function displayUserMessage(element, message, isError = true) { if (element) { element.innerHTML = message; element.style.display = 'block'; element.style.backgroundColor = isError ? '#f8d7da' : '#d4edda'; element.style.color = isError ? '#721c24' : '#155724'; element.style.border = `1px solid ${isError ? '#f5c6cb' : '#c3e6cb'}`; } else { console.error("Attempted to display message on a null element.", message); } }
+        function clearUserMessage(element) { if (element) { element.textContent = ""; element.style.display = 'none'; } }
+        function getReadableTemplateName(templateValue) { const map = { "InviteTemplate_AlphaOptIn": "Alpha Opt-In", "InviteTemplate_AlphaOptOut": "Alpha Opt-Out", "InviteTemplate_BetaOptIn": "Beta Opt-In", "InviteTemplate_BetaOptOut": "Beta Opt-Out" }; return map[templateValue] || templateValue; }
+
+        // --- Populate Table Function ---
+        function populateTable(tableElement, tableBody, messageElement, dataList, isSearchResult) {
+            if (!tableElement || !tableBody || !messageElement) { console.error("populateTable: Missing required table elements."); return; }
+            const thead = tableElement.querySelector('thead'); if (!thead) { console.error("populateTable: thead not found."); return; }
+            tableBody.innerHTML = ''; thead.innerHTML = ''; messageElement.textContent = ''; messageElement.style.display = 'none';
+            let headerHtml = ''; let colSpan = 3;
+            if (isSearchResult) { headerHtml = '<tr><th>Feature</th><th>Stage</th><th>Wave</th><th>Action</th></tr>'; colSpan = 4; }
+            else { headerHtml = '<tr><th>File Name</th><th>Created Date</th><th>Action</th></tr>'; colSpan = 3; }
+            thead.innerHTML = headerHtml;
+            if (!dataList || dataList.length === 0) { tableBody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align: center; padding: 15px; color: #6c757d;">No lists found.</td></tr>`; messageElement.textContent = isSearchResult ? 'No lists found matching search criteria.' : 'No lists found for this user.'; messageElement.style.display = 'block'; }
+            else { dataList.forEach(row => { const tr = document.createElement('tr'); let listIdForAction = 'N/A'; if (isSearchResult) { const featureKey = row["FEATURE_KEY"] || 'N/A'; const featureName = row["CLIENT_FACING_FEATURE_NAME"] || featureKey; const stage = row["STAGE"] || 'N/A'; const waveNumber = row["WAVE_NUMBER"] || 'N/A'; listIdForAction = `${featureKey}_${stage}_${waveNumber}`; tr.innerHTML = `<td>${featureName}</td><td>${stage}</td><td>${waveNumber}</td><td><button class="action-button" data-listid="${listIdForAction}" title="Generate Invite Document for ${listIdForAction}">Generate Doc</button></td>`; } else { const fileName = row["FILE_NAME"] || 'N/A'; const createdDate = row["CREATEDDATE"] || 'N/A'; listIdForAction = fileName; tr.innerHTML = `<td>${fileName}</td><td>${createdDate}</td><td><button class="action-button" data-listid="${listIdForAction}" title="Generate Invite Document for ${listIdForAction}">Generate Doc</button></td>`; } tableBody.appendChild(tr); }); }
+        }
+
+        // --- Fetch User's Lists ---
+        async function fetchUserLists() {
+            showLoading(true, "Fetching your lists...");
+            clearUserMessage(errorMessageDiv);
+            if (userListMessage) { userListMessage.textContent = "Loading your lists..."; userListMessage.style.display = 'block';}
+            try {
+                const response = await fetch(`/get-lists`); // Backend uses session username
+                let lists;
+                if (response.status === 401) { const data = await response.json(); alert(data.message || 'Session expired.'); window.location.href = '/?reason=session_expired'; throw new Error('Unauthorized'); }
+                try { lists = await response.json(); } catch(e){ lists = null; }
+                if (!response.ok) { let errorMsg = `Error ${response.status}`; if(lists && lists.message) { errorMsg += `: ${lists.message}`;} else { const textError = await response.text(); errorMsg += `: ${textError || response.statusText}`; } throw new Error(`Failed to retrieve lists: ${errorMsg}`); }
+                populateTable(userListTable, userListTableBody, userListMessage, lists || [], false);
+            } catch (err) {
+                 if (err.message !== 'Unauthorized') {
+                    console.error("Error retrieving user lists:", err);
+                    displayUserMessage(errorMessageDiv, "Error retrieving your lists: " + err.message);
+                    populateTable(userListTable, userListTableBody, userListMessage, [], false);
+                 }
+            } finally { showLoading(false); }
+        }
+
+        // --- Search for Other Lists ---
+        async function searchLists() {
+            const featureKey = searchFeatureNumberInput.value.trim().toUpperCase();
+            const stage = searchStageSelect.value;
+            const waveNumber = searchWaveNumberSelect.value;
+            clearUserMessage(searchErrorMsg); clearUserMessage(errorMessageDiv);
+            let validationErrors = [];
+            if (!featureKey) { validationErrors.push("Feature Number is required."); } else if (!fileNamePattern.test(featureKey)) { validationErrors.push("Invalid Feature Number format (e.g., FEATURE-123)."); }
+            if (validationErrors.length > 0) { displayUserMessage(searchErrorMsg, validationErrors.join(' ')); return; }
+            const queryParams = new URLSearchParams({ featureKey: featureKey, stage: stage, waveNumber: waveNumber });
+            showLoading(true, "Searching lists...");
+             if (searchListMessage) searchListMessage.style.display = 'none';
+            try {
+                const response = await fetch(`/search-features-by-criteria?${queryParams.toString()}`);
+                let results; const contentType = response.headers.get("content-type");
+                if (response.status === 401) { /* Although unlikely for this specific endpoint, good practice */ const data = await response.json(); alert(data.message || 'Session expired.'); window.location.href = '/?reason=session_expired'; throw new Error('Unauthorized'); }
+                if (contentType && contentType.includes("application/json")) { results = await response.json(); } else { const textResponse = await response.text(); console.error("Received non-JSON response:", textResponse); if (response.ok) { throw new Error("Search failed: Server sent an unexpected response format."); } else { const htmlMatch = textResponse.match(/<title>(.*?)<\/title>/is); const errorDetail = htmlMatch ? htmlMatch[1].trim() : textResponse.substring(0, 200); throw new Error(`Search failed (Status ${response.status}): ${errorDetail || response.statusText}`); } } if (!response.ok) { throw new Error(`Search failed (Status ${response.status}): ${results.message || JSON.stringify(results)}`); }
+                populateTable(searchListTable, searchListTableBody, searchListMessage, results || [], true);
+            } catch (err) {
+                 if (err.message !== 'Unauthorized') {
+                    console.error("Error during list search fetch:", err);
+                    displayUserMessage(searchErrorMsg, `Search Error: ${err.message}`);
+                    populateTable(searchListTable, searchListTableBody, searchListMessage, [], true);
+                 }
+            } finally { showLoading(false); }
+        }
+
+        // --- Handle Clicking "Generate Doc" ---
+        function handleGenerateDocClick(event) {
+            const button = event.target.closest('.action-button');
+            if (button) {
+                const selectedListId = button.getAttribute('data-listid');
+                if (selectedListId && selectedListId !== 'N/A' && selectedListId !== 'N/A_N/A_N/A') {
+                    if(selectedListInput) selectedListInput.value = selectedListId; else { console.error("selectedListInput element not found!"); return; }
+                    if(templateSelectModal) { const alphaOptInRadio = document.getElementById('templateAlphaOptIn'); if (alphaOptInRadio) alphaOptInRadio.checked = true; templateSelectModal.style.display = 'flex'; } else { console.error("templateSelectModal element not found!"); }
+                } else { console.error("Invalid listId selected:", selectedListId); alert("Invalid list selected."); }
+            }
+        }
+
+        // --- Trigger Backend Document Generation ---
+        async function triggerBackendGeneration(listId, templateName) {
+            const additionalFields = {};
+            showLoading(true, "Generating document...");
+            clearUserMessage(finalMessageDiv); clearUserMessage(errorMessageDiv);
+            try {
+                const response = await fetch('/generate-content', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ listId: listId, templateName: templateName, additionalFields: additionalFields }) // Username removed
+                });
+                let result;
+                if (response.status === 401) { const data = await response.json(); alert(data.message || 'Session expired.'); window.location.href = '/?reason=session_expired'; throw new Error('Unauthorized'); }
+                try { result = await response.json(); } catch (e) { result = null; }
+                if (!response.ok) { let errorMsg = `Error ${response.status}`; if (result && result.message) { errorMsg += `: ${result.message}`; } else { const textError = await response.text(); errorMsg += `: ${textError || response.statusText}`; } throw new Error(errorMsg); }
+                if (!result || !result.savedPath) { throw new Error("Server responded OK, but did not return the saved file path."); }
+                displayUserMessage(finalMessageDiv, `Successfully generated document!<br>Saved to: ${result.savedPath}`, false);
+            } catch (err) {
+                 if (err.message !== 'Unauthorized') {
+                    console.error("Error calling /generate-content:", err);
+                    displayUserMessage(errorMessageDiv, `Failed to generate content: ${err.message}`);
+                 }
+            } finally { showLoading(false); }
+        }
+
+        // --- Event Listeners Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // fetchUserLists() is now called by the session check script at the top
+            if (searchListsBtn) { searchListsBtn.addEventListener('click', searchLists); } else { console.error("Search button not found."); }
+            if (userListTableBody) { userListTableBody.addEventListener('click', handleGenerateDocClick); } else { console.warn("User list table body not found."); }
+            if (searchListTableBody) { searchListTableBody.addEventListener('click', handleGenerateDocClick); } else { console.warn("Search list table body not found."); }
+
+            // Template Modal Listeners
+            if (confirmTemplateBtn) {
+                confirmTemplateBtn.addEventListener('click', () => {
+                    const selectedTemplateRadio = templateSelectForm?.querySelector('input[name="templateOption"]:checked'); if (!selectedTemplateRadio) { alert("Please select a template option."); return; }
+                    const templateName = selectedTemplateRadio.value; const listId = selectedListInput?.value;
+                    if (!listId) { console.error("Error: listId was missing."); alert("An error occurred."); if(templateSelectModal) templateSelectModal.style.display = 'none'; return; }
+                    if(templateSelectModal) templateSelectModal.style.display = 'none';
+                    const readableTemplate = getReadableTemplateName(templateName); const confirmationMessage = `Generate ${readableTemplate} content for list:\n${listId}\n\nProceed?`;
+                    if (confirm(confirmationMessage)) { triggerBackendGeneration(listId, templateName); } else { console.log("User cancelled."); }
+                });
+            } else { console.warn("Confirm Template button not found."); }
+            if (cancelTemplateBtn) { cancelTemplateBtn.addEventListener('click', () => { if(templateSelectModal) templateSelectModal.style.display = 'none'; if(selectedListInput) selectedListInput.value = ''; }); } else { console.warn("Cancel Template button not found."); }
+            if (templateSelectModal) { templateSelectModal.addEventListener('click', (e) => { if (e.target === templateSelectModal) { templateSelectModal.style.display = 'none'; if(selectedListInput) selectedListInput.value = ''; } }); } else { console.warn("Template Select Modal not found."); }
+
+            // Initialize table headers
+            populateTable(userListTable, userListTableBody, userListMessage, [], false);
+            populateTable(searchListTable, searchListTableBody, searchListMessage, [], true);
+
+            fetchUserLists(); // Fetch user's lists on page load
+            
+            console.log("Marketing Content page listeners attached.");
+        });
+    </script>
+</body>
+</html>

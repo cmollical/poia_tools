@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Alpha/ Alpha/Beta Command Center</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        /* Basic Reset & Body Styles (borrow from index.html if desired) */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        a { text-decoration: none; color: inherit; }
+
+        /* Header (Consistent Style) */
+        .header {
+            background: #4e2d82;
+            color: #fff;
+            padding: 15px 20px; /* Slightly more padding */
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.8em; /* Slightly larger */
+            font-weight: 700;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Main Content Area */
+        .landing-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px; /* Space between cards */
+            padding: 40px 20px;
+            max-width: 1200px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        /* Tool Card Styling */
+        .tool-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 25px;
+            width: 100%;
+            max-width: 350px; /* Max width for each card */
+            text-align: center;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Pushes button to bottom */
+            min-height: 220px; /* Minimum height */
+        }
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+        .tool-card h2 {
+            color: #4e2d82;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        .tool-card p {
+            font-size: 0.95em;
+            line-height: 1.5;
+            color: #555;
+            margin-bottom: 25px; /* Space before button */
+            flex-grow: 1; /* Allows paragraph to take space */
+        }
+        .tool-card .launch-button {
+            background-color: #4e2d82;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: inline-block; /* Allow text-align center to work */
+            margin-top: auto; /* Push to bottom */
+        }
+        .tool-card .launch-button:hover {
+            background-color: #3c2369;
+        }
+         .tool-card .launch-button.disabled {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+        }
+
+        /* Footer/Logo */
+        .logo-container {
+             margin-top: auto; /* Pushes logo to the bottom */
+             padding: 20px;
+             opacity: 0.8;
+             align-self: flex-end; /* Align to the right */
+             position: fixed; /* Or keep fixed if preferred */
+             bottom: 10px;
+             right: 10px;
+        }
+        .logo-container img {
+            width: 120px;
+            height: auto;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1> Alpha/Beta Command Center</h1>
+    </div>
+
+    <div class="landing-container">
+
+        <div class="tool-card">
+            <h2>List Generation & Scrubbing</h2>
+            <p>Generate new client recruitment lists based on filters or scrub an existing list against specific criteria.</p>
+            <!-- This link now goes to the page containing the combined tool -->
+            <a href="/list-tools" class="launch-button">Launch Tool</a>
+        </div>
+
+        <div class="tool-card">
+            <h2>Marketing Content Generation</h2>
+            <p>Generate templated invite documents (Alpha/Beta Opt-in/Opt-out) using data from generated lists.</p>
+            <!-- This also goes to the main tool page, as the button is there -->
+            <a href="/marketing-content" class="launch-button">Launch Tool</a>
+             <!-- Alternatively, link directly to trigger modal if you implement that JS -->
+             <!-- <button class="launch-button" onclick="goToToolsAndOpenModal('content')">Generate Content</button> -->
+        </div>
+
+        <div class="tool-card">
+            <h2>Qualtrics Survey Creation</h2>
+            <p>Create standardized Qualtrics surveys for Alpha/Beta Opt-in or Opt-out processes. (Coming Soon)</p>
+            <button class="launch-button disabled" disabled>Coming Soon</button>
+        </div>
+
+        <!-- Add more cards here as needed -->
+
+    </div>
+
+    <div class="logo-container">
+        <img src="Product Operations Logo Small.png" alt="Product Operations Logo">
+    </div>
+
+    <!-- Optional: Add JS for more complex interactions if needed -->
+    <!-- <script>
+        function goToToolsAndOpenModal(modalType) {
+            // Example: If you wanted a link to go to the tools page AND open a specific modal
+            // This requires JS communication between pages or parameters, can be complex.
+            // Simpler to just link to the page and let user click buttons there for now.
+            window.location.href = '/list-tools'; // Or potentially pass a param: '/list-tools?open=' + modalType
+        }
+    </script> -->
+
+</body>
+</html>

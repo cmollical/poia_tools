@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pull Final Client List - Alpha/Beta Command Center</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        /* --- Core Styles --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background-color: #f9f9f9; color: #333; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        a { text-decoration: none; color: #4e2d82; } a:hover { text-decoration: underline; }
+
+        /* --- Header & Container Styles --- */
+        .header { width: 100%; background-color: #4e2d82; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 24px; margin: 0; }
+        .header .nav-link { color: #fff; background-color: #6c757d; padding: 8px 15px; border-radius: 4px; font-size: 14px; transition: background-color 0.2s; border: 1px solid #fff; }
+        .header .nav-link:hover { background-color: #5a6268; text-decoration: none; }
+        .header-logout { display: flex; align-items: center; }
+        .header-user { margin-right: 15px; font-size: 14px; }
+        .logout-button { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .logout-button:hover { background: rgba(255,255,255,0.3); }
+        .container { max-width: 1200px; width: 100%; padding: 20px; margin-top: 20px; }
+        
+        /* --- Form Styles --- */
+        .form-section { background-color: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .form-section h2 { margin-bottom: 20px; color: #333; font-size: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+        .submit-button { background-color: #4e2d82; color: white; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        .submit-button:hover { background-color: #3c2369; }
+        
+        /* --- Results Section --- */
+        .results-section { background-color: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px; display: none; }
+        .results-section h2 { margin-bottom: 20px; color: #333; font-size: 20px; }
+        .results-links { margin-top: 20px; }
+        .results-links a { display: block; margin-bottom: 10px; }
+        
+        /* --- File Path Box --- */
+        .file-path-box { background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 10px; margin-bottom: 15px; }
+        .file-path { font-family: monospace; background-color: #fff; border: 1px solid #ddd; padding: 8px; border-radius: 4px; margin: 8px 0; word-break: break-all; }
+        .copy-path-button { background-color: #4e2d82; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        .copy-path-button:hover { background-color: #3c2369; }
+        
+        /* --- Loader --- */
+        .loader-container { display: none; text-align: center; margin: 20px 0; }
+        .loader { display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #4e2d82; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* --- Modal Styles --- */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { position: relative; background-color: white; margin: 10% auto; padding: 30px; border-radius: 8px; width: 60%; max-width: 600px; }
+        .close { position: absolute; top: 15px; right: 15px; font-size: 24px; font-weight: bold; cursor: pointer; }
+        .close:hover { color: #4e2d82; }
+        .top25-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .top25-table th, .top25-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .top25-table th { background-color: #f2f2f2; }
+        .initials-input { width: 100%; padding: 10px; margin-top: 20px; }
+        .verification-checkbox { margin-top: 15px; }
+        .modal-buttons { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
+        .modal-buttons button { padding: 10px 15px; border-radius: 4px; border: none; cursor: pointer; }
+        .modal-confirm { background-color: #4e2d82; color: white; }
+        .modal-cancel { background-color: #f2f2f2; color: #333; }
+        
+        /* --- Logo --- */
+        .logo-container { margin-top: auto; padding: 20px; text-align: center; }
+        .logo-container img { max-width: 200px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/" class="nav-link">Back to Home</a>
+        <h1>Pull Final Client List</h1>
+        <div style="width: 100px;"></div> <!-- Empty div for balance -->
+    </div>
+
+    <div class="container">
+        <div class="form-section">
+            <h2>Pull Final Client List</h2>
+            <p>This tool will pull your list of clients to activate in Launch Darkly & add to the Salesforce Object.</p>
+            <div class="form-group">
+                <label for="featureNumber">Feature Number:</label>
+                <input type="text" id="featureNumber" placeholder="e.g., FEATURE-123" required>
+            </div>
+            <div class="form-group">
+                <label for="stage">Stage:</label>
+                <select id="stage" required>
+                    <option value="" disabled selected>Select a stage</option>
+                    <option value="Alpha">Alpha</option>
+                    <option value="Beta">Beta</option>
+                    <option value="DarkAlpha">DarkAlpha</option>
+                    <option value="DarkBeta">DarkBeta</option>
+                    <option value="AlphaBundled">AlphaBundled</option>
+                    <option value="BetaBundled">BetaBundled</option>
+                    <option value="AlphaBatched">AlphaBatched</option>
+                    <option value="BetaBatched">BetaBatched</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="wave">Wave:</label>
+                <select id="wave" required>
+                    <option value="" disabled selected>Select a wave</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+            </div>
+            <button id="submitButton" class="submit-button">Generate Final Client List</button>
+        </div>
+
+        <div class="loader-container">
+            <div class="loader"></div>
+            <p>Processing your request...</p>
+        </div>
+
+        <div id="resultsSection" class="results-section">
+            <h2>Results</h2>
+            <div id="resultsContent"></div>
+            <div class="results-links">
+                <h3>Helpful Links:</h3>
+                <div id="clientInviteListLink"></div>
+                <div id="qualtricsLinks"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Top 25 Client Verification -->
+    <div id="top25Modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Top 25 Client Verification Required</h2>
+            <p>The following Top 25 clients were found in your list. Please verify that you want to include them.</p>
+            <div id="top25TableContainer"></div>
+            <input type="text" id="initials" class="initials-input" placeholder="Enter your initials" required>
+            <div class="verification-checkbox">
+                <input type="checkbox" id="verificationCheckbox">
+                <label for="verificationCheckbox">I verify that I want to include these Top 25 clients in the final list</label>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-cancel" id="cancelButton">Cancel</button>
+                <button class="modal-confirm" id="confirmButton">Confirm and Download</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="logo-container">
+        <img src="Product Operations Logo Small.png" alt="Product Operations Logo">
+    </div>
+
+    <script>
+        // --- Core elements ---
+        const featureNumberInput = document.getElementById('featureNumber');
+        const stageInput = document.getElementById('stage');
+        const waveInput = document.getElementById('wave');
+        const submitButton = document.getElementById('submitButton');
+        const loaderContainer = document.querySelector('.loader-container');
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsContent = document.getElementById('resultsContent');
+        const clientInviteListLink = document.getElementById('clientInviteListLink');
+        const qualtricsLinks = document.getElementById('qualtricsLinks');
+        const top25Modal = document.getElementById('top25Modal');
+        const closeModal = document.querySelector('.close');
+        const top25TableContainer = document.getElementById('top25TableContainer');
+        const initialsInput = document.getElementById('initials');
+        const verificationCheckbox = document.getElementById('verificationCheckbox');
+        const confirmButton = document.getElementById('confirmButton');
+        const cancelButton = document.getElementById('cancelButton');
+
+        // State variables
+        let currentClientData = null;
+        let currentMissingClients = [];
+        let hasTop25Clients = false;
+        let currentUsername = ''; // Store the current username for use in file paths
+
+        // --- Helper Functions ---
+        function showLoggedInUI(username, firstName) {
+            // Store the username for later use
+            currentUsername = username;
+        }
+
+        // Logout function removed
+
+        // --- Event Listeners ---
+
+        // Handle modal close button
+        closeModal.addEventListener('click', () => {
+            top25Modal.style.display = 'none';
+        });
+
+        // Handle modal cancel button
+        cancelButton.addEventListener('click', () => {
+            top25Modal.style.display = 'none';
+        });
+
+        // Handle form submission
+        submitButton.addEventListener('click', async () => {
+            const featureNumber = featureNumberInput.value.trim();
+            const stage = stageInput.value.trim();
+            const wave = waveInput.value.trim();
+
+            if (!featureNumber || !stage || !wave) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            // Display loader
+            loaderContainer.style.display = 'block';
+            resultsSection.style.display = 'none';
+
+            try {
+                // 1. Check if survey is completed
+                const surveysResponse = await fetch('/api/get-qualtrics-surveys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ featureNumber, stage }),
+                });
+
+                if (!surveysResponse.ok) {
+                    throw new Error('Failed to fetch survey information');
+                }
+
+                const surveysData = await surveysResponse.json();
+                
+                // Check if we need to warn about survey end dates
+                let proceedWithList = true;
+                if (surveysData.surveys && surveysData.surveys.length > 0) {
+                    const currentDate = new Date();
+                    console.log('Survey data:', JSON.stringify(surveysData.surveys[0]));
+                    const latestEndDate = new Date(Math.max(...surveysData.surveys.map(s => {
+                        // Handle both lowercase and uppercase column names
+                        const endDate = s.SURVEY_END_DATE || s.survey_end_date;
+                        console.log(`Survey end date: ${endDate}`);
+                        return new Date(endDate);
+                    })));
+                    
+                    if (latestEndDate > currentDate) {
+                        proceedWithList = confirm(`The latest survey end date is ${latestEndDate.toLocaleDateString()}. Are you sure you want to pull the final list before all surveys have ended?`);
+                    }
+                }
+
+                if (!proceedWithList) {
+                    loaderContainer.style.display = 'none';
+                    return;
+                }
+
+                // 2. Fetch the client list
+                const response = await fetch('/api/pull-final-client-list', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ featureNumber, stage, wave }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch client list');
+                }
+
+                const data = await response.json();
+                
+                // Debug the response structure
+                console.log('[Frontend Debug] Full response data:', data);
+                console.log('[Frontend Debug] data.clients type:', typeof data.clients);
+                console.log('[Frontend Debug] data.clients is array:', Array.isArray(data.clients));
+                console.log('[Frontend Debug] data.clients length:', data.clients ? data.clients.length : 'undefined');
+                
+                currentClientData = data.clients;
+                
+                // Debug the assignment
+                console.log('[Frontend Debug] currentClientData after assignment:', currentClientData);
+                console.log('[Frontend Debug] currentClientData length:', currentClientData ? currentClientData.length : 'undefined');
+                
+                // --- New check for missing clients ---
+                if (data.missingClients && data.missingClients.length > 0) {
+                    alert('We believe some clients filled out a survey but are missing from the final list. Please review your list and survey responses for accuracy. A separate Excel download with these clients will be provided.');
+                    console.warn('Missing clients:', data.missingClients);
+                    currentMissingClients = data.missingClients;
+                }
+
+                // Check for Top 25 clients with a more specific filter
+                const top25Clients = currentClientData.filter(client => 
+                    client.cs_team && client.cs_team.trim().toLowerCase() === 'top 25 client');
+                
+                hasTop25Clients = top25Clients.length > 0;
+
+                // Display links to client invite list and qualtrics surveys
+                updateResultLinks(featureNumber, stage, wave, surveysData.surveys);
+                
+                // If there are Top 25 clients, show verification modal
+                if (hasTop25Clients) {
+                    showTop25Modal(top25Clients);
+                } else {
+                    // No Top 25 clients, still log to Snowflake but without verification
+                    try {
+                        await fetch('/api/log-top25-verification', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                featureNumber,
+                                stage,
+                                wave,
+                                initials: null,
+                                verified: false,
+                                clients: currentClientData
+                            }),
+                        });
+                        console.log('Client list logged to Snowflake successfully');
+                    } catch (logError) {
+                        console.error('Error logging client list to Snowflake:', logError);
+                        // Continue with download even if logging fails
+                    }
+                    
+                    // Proceed to download
+                    downloadExcelFile(currentClientData, featureNumber, stage, wave);
+                    if (currentMissingClients && currentMissingClients.length > 0) {
+                        downloadMissingClientsFile(currentMissingClients, featureNumber, stage, wave);
+                    }
+                    
+                    // Reset form inputs AFTER downloads to prevent caching for next request
+                    setTimeout(() => {
+                        console.log('[Frontend Debug] Resetting form inputs to prevent caching');
+                        featureNumberInput.value = '';
+                        stageInput.selectedIndex = 0; // Reset to first option ("Select a stage")
+                        waveInput.selectedIndex = 0;  // Reset to first option ("Select a wave")
+                    }, 1000); // Wait 1 second to allow downloads to start
+                }
+
+                // Debug the UI display
+                console.log('[Frontend Debug] About to display results');
+                console.log('[Frontend Debug] currentClientData.length:', currentClientData.length);
+                console.log('[Frontend Debug] resultsSection element:', resultsSection);
+                console.log('[Frontend Debug] resultsContent element:', resultsContent);
+                
+                const displayMessage = `Found ${currentClientData.length} clients for ${featureNumber}_${stage}_${wave}.`;
+                console.log('[Frontend Debug] Display message:', displayMessage);
+                
+                resultsSection.style.display = 'block';
+                resultsContent.innerHTML = `<p>${displayMessage}</p>`;
+                
+                console.log('[Frontend Debug] Results section displayed');
+                console.log('[Frontend Debug] resultsContent.innerHTML after setting:', resultsContent.innerHTML);
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultsContent.innerHTML = `<p>Error: ${error.message}</p>`;
+                resultsSection.style.display = 'block';
+            } finally {
+                loaderContainer.style.display = 'none';
+            }
+        });
+
+        // Handle Top 25 confirmation
+        confirmButton.addEventListener('click', async () => {
+            const initials = initialsInput.value.trim();
+            const isVerified = verificationCheckbox.checked;
+
+            if (!initials) {
+                alert('Please enter your initials');
+                return;
+            }
+
+            if (!isVerified) {
+                alert('Please check the verification box');
+                return;
+            }
+
+            try {
+                // Log the Top 25 client verification
+                const featureNumber = featureNumberInput.value.trim();
+                const stage = stageInput.value.trim();
+                const wave = waveInput.value.trim();
+
+                // Save verification to Snowflake
+                await fetch('/api/log-top25-verification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        featureNumber,
+                        stage,
+                        wave,
+                        initials,
+                        verified: true,
+                        clients: currentClientData
+                    }),
+                });
+
+                // Download the Excel file
+                downloadExcelFile(currentClientData, featureNumber, stage, wave);
+                
+                // Close the modal
+                top25Modal.style.display = 'none';
+                
+            } catch (error) {
+                console.error('Error logging verification:', error);
+                alert('Error saving verification. Please try again.');
+            }
+        });
+
+        // --- Utility Functions ---
+        function showTop25Modal(top25Clients) {
+            // Create table to display Top 25 clients
+            let tableHTML = `
+                <table class="top25-table">
+                    <thead>
+                        <tr>
+                            <th>Context ID</th>
+                            <th>CSM Name</th>
+                            <th>Tier</th>
+                            <th>CS Team</th>
+                            <th>Alpha/Beta Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            top25Clients.forEach(client => {
+                tableHTML += `
+                    <tr>
+                        <td>${client.context_id || ''}</td>
+                        <td>${client.csm_name || ''}</td>
+                        <td>${client.tier || ''}</td>
+                        <td>${client.cs_team || ''}</td>
+                        <td>${client.alpha_beta_status || ''}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+
+            top25TableContainer.innerHTML = tableHTML;
+            
+            // Reset form fields
+            initialsInput.value = '';
+            verificationCheckbox.checked = false;
+            
+            // Show the modal
+            top25Modal.style.display = 'block';
+        }
+
+        function updateResultLinks(featureNumber, stage, wave, surveys) {
+            // Update client invite list link - avoid using file:// protocol as browsers block it
+            // Use the dynamic username instead of hardcoded value
+            const inviteListPath = `C:\\Users\\${currentUsername}\\OneDrive - athenahealth\\Client List Pulls\\${featureNumber}_${stage}_${wave}`;
+            clientInviteListLink.innerHTML = `<div class="file-path-box">
+                <p><strong>Client Invite List Path:</strong></p>
+                <p class="file-path">${inviteListPath}</p>
+                <button class="copy-path-button" onclick="navigator.clipboard.writeText('${inviteListPath.replace(/\\/g, '\\\\')}'); alert('Path copied to clipboard!');">Copy Path</button>
+            </div>`;
+            
+            // Update Qualtrics survey links
+            if (surveys && surveys.length > 0) {
+                let linksHTML = '<h4>Qualtrics Survey Results:</h4>';
+                surveys.forEach(survey => {
+                    // Handle both uppercase and lowercase column names
+                    const surveyId = survey.QUALTRICS_SURVEY_ID || survey.qualtrics_survey_id;
+                    const endDate = survey.SURVEY_END_DATE || survey.survey_end_date;
+                    
+                    if (surveyId) {
+                        linksHTML += `<a href="https://athenahealthrc.co1.qualtrics.com/responses/#/surveys/${surveyId}" target="_blank">
+                            View Survey Results (End Date: ${endDate ? new Date(endDate).toLocaleDateString() : 'Not specified'})
+                        </a><br>`;
+                    } else {
+                        console.error('Missing survey ID in survey data:', JSON.stringify(survey));
+                    }
+                });
+                qualtricsLinks.innerHTML = linksHTML;
+            } else {
+                qualtricsLinks.innerHTML = '<p>No Qualtrics surveys found for this feature and stage.</p>';
+            }
+        }
+
+        function downloadExcelFile(clientData, featureNumber, stage, wave) {
+            if (!clientData || clientData.length === 0) {
+                alert('No client data available to download');
+                return;
+            }
+
+            console.log(`Initiating download for ${clientData.length} clients`);
+            
+            // For large data sets, use a more efficient approach
+            if (clientData.length > 200) {
+                // First store the client data in the session via a separate API call
+                fetch('/api/store-client-data-for-download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        clientData,
+                        metadata: { featureNumber, stage, wave }
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Failed to store client data: ${text}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.downloadId) {
+                        // Then initiate the download with just the ID
+                        const downloadUrl = `/api/download-final-client-list?downloadId=${data.downloadId}`;
+                        console.log(`Starting download from: ${downloadUrl}`);
+                        
+                        // Create an invisible iframe for the download
+                        const iframe = document.createElement('iframe');
+                        iframe.style.display = 'none';
+                        iframe.src = downloadUrl;
+                        document.body.appendChild(iframe);
+                        
+                        // Clean up the iframe after download starts
+                        setTimeout(() => {
+                            document.body.removeChild(iframe);
+                        }, 5000);
+                    } else {
+                        throw new Error('No download ID received');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error initiating download:', error);
+                    alert(`Download failed: ${error.message}. Please try again or contact support.`);
+                });
+            } else {
+                // For smaller datasets, use fetch() approach like missing clients download
+                console.log('[Download Debug] Using fetch() approach for main client list');
+                console.log('[Download Debug] Client data length:', clientData.length);
+                console.log('[Download Debug] Feature/Stage/Wave:', featureNumber, stage, wave);
+                
+                fetch('/api/download-final-client-list', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        clientData,
+                        featureNumber,
+                        stage,
+                        wave
+                    })
+                })
+                .then(response => {
+                    console.log('[Download Debug] Response received:', response.status, response.statusText);
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Server responded with ${response.status}: ${text}`);
+                        });
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    console.log('[Download Debug] Blob received, size:', blob.size);
+                    // Create download link
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `FinalClientList_${featureNumber}_${stage}_${wave}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    console.log('[Download Debug] Main client list download completed');
+                })
+                .catch(error => {
+                    console.error('[Download Debug] Error downloading main client list:', error);
+                    alert(`Download failed: ${error.message}. Please try again or contact support.`);
+                });
+            }
+        }
+
+        function downloadMissingClientsFile(missingData, featureNumber, stage, wave) {
+            if (!missingData || missingData.length === 0) {
+                return;
+            }
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/api/download-missing-clients';
+            form.style.display = 'none';
+
+            const dataField = document.createElement('input');
+            dataField.type = 'hidden';
+            dataField.name = 'missingData';
+            dataField.value = JSON.stringify(missingData);
+            form.appendChild(dataField);
+
+            const featureField = document.createElement('input');
+            featureField.type = 'hidden';
+            featureField.name = 'featureNumber';
+            featureField.value = featureNumber;
+            form.appendChild(featureField);
+
+            const stageField = document.createElement('input');
+            stageField.type = 'hidden';
+            stageField.name = 'stage';
+            stageField.value = stage;
+            form.appendChild(stageField);
+
+            const waveField = document.createElement('input');
+            waveField.type = 'hidden';
+            waveField.name = 'wave';
+            waveField.value = wave;
+            form.appendChild(waveField);
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+        }
+
+        // --- Check session on page load ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('final_client_list.html DOMContentLoaded - Checking session...');
+            try {
+                const response = await fetch('/auth/check-session');
+                const data = await response.json();
+                
+                if (data.loggedIn) {
+                    showLoggedInUI(data.username, data.firstName);
+                } else {
+                    console.log('No active session, redirecting to login...');
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Error checking session:', error);
+                alert('Error checking login status. Please try refreshing the page.');
+            }
+        });
+    </script>
+</body>
+</html>

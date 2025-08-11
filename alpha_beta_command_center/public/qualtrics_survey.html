@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Qualtrics Survey Creation</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        /* --- Base Styles --- */
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; background-color: #f9f9f9; color: #333; display: flex; flex-direction: column; align-items: center; padding-bottom: 70px; position: relative; min-height: 100vh; }
+        input[type="text"], textarea, input[type="number"], select, input[type="radio"], input[type="date"] { font-family: Arial, sans-serif; } /* Added input[type="date"] */
+        a { color: #4e2d82; text-decoration: none; } a:hover { text-decoration: underline; }
+        button { cursor: pointer; }
+
+        /* --- Header --- */
+        .header { background: #4e2d82; color: #fff; padding: 10px 20px; text-align: center; width: 100%; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between; }
+        .header h1 { margin: 0 auto; font-size: 1.6em; font-weight: 700; text-shadow: 1px 1px 4px rgba(0,0,0,0.3); padding: 0 50px; }
+        .header .nav-link { color: #fff; background-color: #6c757d; padding: 8px 15px; border-radius: 4px; font-size: 14px; transition: background-color 0.2s; border: 1px solid #fff; white-space: nowrap; }
+        .header .nav-link:hover { background-color: #5a6268; text-decoration: none; }
+
+        /* --- Main Container --- */
+        .qs-container { max-width: 1100px; width: 100%; margin: 20px auto; padding: 0 15px; display: flex; flex-direction: column; gap: 25px; }
+
+        /* --- Sections --- */
+        .content-section { background: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .content-section h2 { margin-top: 0; color: #4e2d82; font-size: 1.3em; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        .username-section { display: none; }
+
+        /* --- Tables --- */
+        .table-container { overflow-x: auto; max-height: 350px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { border: 1px solid #ddd; padding: 8px 10px; vertical-align: middle; text-align: left; word-break: break-word; }
+        th { background-color: #f2f2f2; color: #4e2d82; font-weight: 600; position: sticky; top: 0; z-index: 1; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #e9ecef; }
+        .action-cell { white-space: nowrap; display: flex; gap: 5px;}
+        .action-button { background-color: #6c757d; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: background-color 0.2s; }
+        .action-button.opt-in { background-color: #28a745; } .action-button.opt-in:hover { background-color: #218838; }
+        .action-button.opt-out { background-color: #dc3545; } .action-button.opt-out:hover { background-color: #c82333; }
+        .action-button:disabled { background-color: #cccccc; color: #666666; cursor: not-allowed; }
+        .message-area { padding: 15px; text-align: center; color: #6c757d; font-style: italic; }
+
+        /* --- Manual Form --- */
+        .manual-form {
+            display: grid;
+            /* 3 columns: Feature#, Stage, Type. Adjust fr units for relative width */
+            grid-template-columns: 1.5fr 1fr 1fr;
+            gap: 15px 20px; /* Row gap, Column gap */
+            align-items: end; /* Align form elements to the bottom of their cell */
+        }
+        .manual-form > div { /* Style direct children divs of the form */
+             display: flex;
+             flex-direction: column;
+        }
+        .manual-form label { font-size: 14px; margin-bottom: 5px; color: #555; font-weight: 500; }
+        .manual-form input[type="text"], .manual-form select { width: 100%; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
+
+        /* Feature Name Display - HIDDEN */
+        .manual-form .feature-name-display { display: none; }
+
+        /* Button spanning full width */
+        .manual-form button {
+            background-color: #4e2d82; color: #fff; border: none;
+            padding: 10px 20px; border-radius: 4px; font-size: 14px;
+            font-weight: bold; transition: background-color 0.2s;
+            justify-self: stretch; /* Make button fill container */
+            margin-top: 10px; /* Add space above button */
+            width: 100%; /* Ensure full width within its container */
+        }
+        .manual-form button:hover { background-color: #3c2369; }
+
+         /* Ensure Button container and Error Message span all columns */
+        .manual-form > div[style*="grid-column: 1 / -1"] {
+             margin-top: 15px; /* Add space above full-width elements */
+        }
+        #manualErrorMsg {
+            color: #dc3545; font-size: 13px; font-weight: 500;
+            min-height: 1.2em; text-align: left;
+            grid-column: 1 / -1; /* Ensure this spans all columns */
+            margin-top: 0; /* Reset margin as spacing is handled by grid-gap/container */
+        }
+
+        /* Spinner positioning */
+        .feature-number-container { position: relative; }
+        .inline-spinner { display: none; position: absolute; right: 8px; top: 30px; width: 16px; height: 16px; border: 2px solid #ccc; border-top: 2px solid #4e2d82; border-radius: 50%; animation: spin 1s linear infinite; }
+
+        /* --- Common Loading, Logo, Messages --- */
+        .loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 9999; }
+        .spinner { border: 8px solid #ccc; border-top: 8px solid #4e2d82; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .step { font-size: 16px; color: #fff; opacity: 0; transition: opacity 0.5s; text-align: center; max-width: 80%; line-height: 1.4; }
+        .step.active { opacity: 1; }
+        #finalMessage, #errorMessage { display: none; margin: 15px 0; padding: 10px 15px; border-radius: 4px; font-size: 14px; font-weight: 500; text-align: center; max-width: 90%; }
+        #finalMessage { color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; }
+        #finalMessage a { color: #0056b3; font-weight: bold; text-decoration: underline;}
+        #errorMessage { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .logo-container { position: fixed; bottom: 10px; right: 10px; z-index: 999; }
+        .logo-container img { width: 120px; height: auto; opacity: 0.8; }
+
+         /* --- Date Modal Styles --- */
+        #dateModal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 400px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .modal-content h3 { margin-top: 0; color: #4e2d82; }
+        .modal-content label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #555;}
+        .modal-content input[type="date"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 15px; font-size: 14px;}
+        #dateModalError { color: #dc3545; font-size: 13px; font-weight: 500; min-height: 1.2em; margin-bottom: 10px; text-align: left;}
+        .modal-buttons { text-align: right; margin-top: 15px;}
+        .modal-buttons button { color: white; padding: 8px 15px; border: none; border-radius: 4px; margin-left: 10px; font-size: 14px; transition: background-color 0.2s;}
+        #cancelDateSelection { background-color: #6c757d; }
+        #cancelDateSelection:hover { background-color: #5a6268; }
+        #confirmDateSelection { background-color: #4e2d82; }
+        #confirmDateSelection:hover { background-color: #3c2369; }
+
+    </style>
+     <!-- Session Check Script -->
+     <script>
+       (async () => {
+           try {
+               console.log("Running session check...");
+               const response = await fetch('/auth/check-session');
+               if (!response.ok) {
+                    console.error(`Session check failed with status: ${response.status}`);
+                    throw new Error(`Session check failed`);
+               }
+               const data = await response.json();
+               console.log("Session check response data:", data);
+               if (!data.loggedIn) {
+                   console.log('User session invalid/expired, redirecting to login.');
+                   window.location.href = '/login'; // Redirect to login page
+               } else {
+                    console.log(`Tool Page: User ${data.username} is logged in. Proceeding to call fetchUserLists.`);
+                    // *** FIXED: Call fetchUserLists directly ***
+                    // Ensure the main script below has defined this function before this point.
+                    fetchUserLists();
+               }
+           } catch (error) {
+               console.error('Error during tool page session check, redirecting to login:', error);
+               window.location.href = '/login'; // Redirect to login page on any error
+           }
+       })();
+     </script>
+    <!-- End Session Check Script -->
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <a href="/" class="nav-link">Back to Home</a>
+        <h1>Qualtrics Survey Creation</h1>
+        <div></div> <!-- Placeholder for spacing -->
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="qs-container">
+
+        <!-- MESSAGES -->
+        <div id="finalMessage"></div>
+        <div id="errorMessage"></div>
+
+        <!-- User's Lists Section -->
+        <div class="content-section">
+            <h2>Create Survey from Existing List</h2>
+            <div class="table-container" id="userListTableContainer">
+                <table id="userListTable">
+                    <thead></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="message-area" id="userListMessage">Loading your lists...</div>
+        </div>
+
+        <!-- Manual Entry Section -->
+        <div class="content-section">
+            <h2>Create Survey with Manual Details</h2>
+             <form id="manualSurveyForm" class="manual-form" autocomplete="off">
+                <!-- Feature Number Column -->
+                <div class="feature-number-container">
+                    <label for="manualFeatureNumber">Feature Number:</label>
+                    <input type="text" id="manualFeatureNumber" name="manualFeatureNumber" placeholder="FEATURE-123" required pattern="FEATURE-\d{3,8}">
+                    <div class="inline-spinner" id="featureNameSpinner"></div>
+                </div>
+
+                <!-- Stage Column -->
+                 <div>
+                    <label for="manualStage">Alpha/Beta Stage:</label>
+                    <select id="manualStage" name="manualStage" required>
+                        <option value="" disabled selected>Select Stage...</option>
+                        <option value="Alpha">Alpha</option><option value="Beta">Beta</option><option value="DarkAlpha">DarkAlpha</option><option value="DarkBeta">DarkBeta</option><option value="AlphaBundled">AlphaBundled</option><option value="BetaBundled">BetaBundled</option><option value="AlphaBatched">AlphaBatched</option><option value="BetaBatched">BetaBatched</option>
+                    </select>
+                </div>
+
+                 <!-- Type Column -->
+                 <div>
+                    <label for="manualSurveyType">Survey Type:</label>
+                    <select id="manualSurveyType" name="manualSurveyType" required>
+                        <option value="Opt-In" selected>Opt-In</option>
+                        <option value="Opt-Out">Opt-Out</option>
+                    </select>
+                </div>
+
+                 <!-- Hidden input to store the fetched name -->
+                 <input type="hidden" id="fetchedManualFeatureName" value="">
+
+                 <!-- Button (Spans full width below) -->
+                 <div style="grid-column: 1 / -1;"><button type="submit" id="manualCreateSurveyBtn">Create Survey Manually</button></div>
+
+                 <!-- Error Message (Spans full width below) -->
+                 <div id="manualErrorMsg" style="grid-column: 1 / -1;"></div>
+            </form>
+        </div>
+
+    </div> <!-- End qs-container -->
+
+    <!-- LOADING SCREEN -->
+    <div class="loading-screen" id="loadingScreen"><div class="spinner"></div><div class="step" id="loadingStep"></div></div>
+
+    <!-- LOGO -->
+    <div class="logo-container"><img src="Product Operations Logo Small.png" alt="Product Operations Logo" /></div>
+
+    <!-- DATE SELECTION MODAL -->
+    <div id="dateModal">
+        <div class="modal-content">
+            <h3>Set Survey Dates</h3>
+            <div>
+                <label for="surveyStartDate">Start Date:</label>
+                <input type="date" id="surveyStartDate" name="surveyStartDate">
+            </div>
+            <div>
+                <label for="surveyEndDate">End Date (Expiration):</label>
+                <input type="date" id="surveyEndDate" name="surveyEndDate">
+            </div>
+            <div id="dateModalError"></div>
+            <div class="modal-buttons">
+                <button id="cancelDateSelection">Cancel</button>
+                <button id="confirmDateSelection">Confirm & Create</button>
+            </div>
+            <!-- Hidden fields to store context -->
+            <input type="hidden" id="modalSurveyType">
+            <input type="hidden" id="modalFeatureNumber">
+            <input type="hidden" id="modalAlphaBeta">
+            <input type="hidden" id="modalClientFacingName">
+        </div>
+    </div>
+
+    <!-- MAIN SCRIPT BLOCK (runs after session check script) -->
+    <script>
+        // --- Get Elements (Add Modal Elements) ---
+        const dateModal = document.getElementById('dateModal');
+        const surveyStartDateInput = document.getElementById('surveyStartDate');
+        const surveyEndDateInput = document.getElementById('surveyEndDate');
+        const confirmDateSelectionBtn = document.getElementById('confirmDateSelection');
+        const cancelDateSelectionBtn = document.getElementById('cancelDateSelection');
+        const dateModalError = document.getElementById('dateModalError');
+        // Hidden inputs for context
+        const modalSurveyTypeInput = document.getElementById('modalSurveyType');
+        const modalFeatureNumberInput = document.getElementById('modalFeatureNumber');
+        const modalAlphaBetaInput = document.getElementById('modalAlphaBeta');
+        const modalClientFacingNameInput = document.getElementById('modalClientFacingName');
+
+        // --- Get Elements (Existing) ---
+        const userListTable = document.getElementById('userListTable');
+        const userListTableBody = userListTable?.querySelector('tbody');
+        const userListMessage = document.getElementById('userListMessage');
+        const manualSurveyForm = document.getElementById('manualSurveyForm');
+        const manualFeatureNumberInput = document.getElementById('manualFeatureNumber');
+        const manualStageSelect = document.getElementById('manualStage');
+        const featureNameSpinner = document.getElementById('featureNameSpinner');
+        const fetchedManualFeatureNameInput = document.getElementById('fetchedManualFeatureName');
+        const manualSurveyTypeSelect = document.getElementById('manualSurveyType');
+        const manualCreateSurveyBtn = document.getElementById('manualCreateSurveyBtn');
+        const manualErrorMsg = document.getElementById('manualErrorMsg');
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingStepElem = document.getElementById('loadingStep');
+        const finalMessageDiv = document.getElementById('finalMessage');
+        const errorMessageDiv = document.getElementById('errorMessage');
+
+        // --- Variables ---
+        let loadingInterval;
+        const loadingSteps = [ "Initializing...", "Preparing...", "Calling Qualtrics...", "Creating...", "Sharing...", "Logging...", "Finalizing..." ];
+        let currentStep = 0;
+        const fileNamePattern = /^FEATURE-\d{3,8}$/i;
+
+        // --- Utility Functions ---
+        function showLoading(show, message = "") { if (loadingScreen && loadingStepElem) { if (show) { loadingStepElem.textContent = message || loadingSteps[0]; loadingStepElem.classList.add('active'); loadingScreen.style.display = 'flex'; cycleLoadingSteps(); } else { loadingScreen.style.display = 'none'; clearInterval(loadingInterval); loadingStepElem.classList.remove('active'); } } else { console.error("Loading screen elements not found!"); } }
+        function cycleLoadingSteps() { clearInterval(loadingInterval); currentStep = 0; if (!loadingStepElem) return; loadingStepElem.textContent = loadingSteps[currentStep]; loadingStepElem.classList.add('active'); loadingInterval = setInterval(() => { if (!loadingStepElem) { clearInterval(loadingInterval); return; }; loadingStepElem.classList.remove('active'); setTimeout(() => { if (!loadingStepElem) return; currentStep = (currentStep + 1) % loadingSteps.length; loadingStepElem.textContent = loadingSteps[currentStep]; loadingStepElem.classList.add('active'); }, 2000); }, 2500); }
+        
+        // Improved message display function - always use this for displaying messages
+        function displayUserMessage(element, message, isError = true, allowHTML = false) { 
+            if (element) { 
+                // Always use innerHTML for the final message div to ensure HTML links work
+                if (element === finalMessageDiv || allowHTML === true) {
+                    element.innerHTML = message;
+                } else {
+                    element.textContent = message;
+                }
+                element.style.display = 'block'; 
+                element.style.backgroundColor = isError ? '#f8d7da' : '#d4edda'; 
+                element.style.color = isError ? '#721c24' : '#155724'; 
+                element.style.border = `1px solid ${isError ? '#f5c6cb' : '#c3e6cb'}`; 
+            } else { 
+                console.error("Attempted to display message on a null element.", message); 
+            } 
+        }
+        
+        function clearUserMessage(element) { if (element) { element.innerHTML = ""; element.style.display = 'none'; } } // Use innerHTML here too for consistency
+
+        // --- Date Formatting Utility ---
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // --- Show/Hide Date Modal Functions ---
+        function showDateModal(surveyType, featureNumber, alphaBeta, clientFacingName) {
+            clearUserMessage(dateModalError);
+            modalSurveyTypeInput.value = surveyType;
+            modalFeatureNumberInput.value = featureNumber;
+            modalAlphaBetaInput.value = alphaBeta;
+            modalClientFacingNameInput.value = clientFacingName;
+            const today = new Date();
+            const twoWeeksLater = new Date();
+            twoWeeksLater.setDate(today.getDate() + 14);
+            surveyStartDateInput.value = formatDateForInput(today);
+            surveyEndDateInput.value = formatDateForInput(twoWeeksLater);
+            if (dateModal) dateModal.style.display = 'block';
+        }
+        function hideDateModal() {
+            if (dateModal) dateModal.style.display = 'none';
+            modalSurveyTypeInput.value = ''; modalFeatureNumberInput.value = ''; modalAlphaBetaInput.value = ''; modalClientFacingNameInput.value = '';
+        }
+
+        // --- Populate User List Table ---
+        function populateUserListTable(dataList) {
+             if (!userListTable || !userListTableBody || !userListMessage) { console.error("User list table elements not found."); return; }
+            const thead = userListTable.querySelector('thead'); if (!thead) { console.error("User list table thead not found."); return; }
+            userListTableBody.innerHTML = ''; thead.innerHTML = '<tr><th>File Name</th><th>Created Date</th><th>Actions</th></tr>';
+            userListMessage.textContent = ''; userListMessage.style.display = 'none';
+            if (!dataList || dataList.length === 0) { userListTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 15px; color: #6c757d;">No lists found for your user.</td></tr>`; /*userListMessage.textContent = 'No previously generated lists found for your user.'; userListMessage.style.display = 'block';*/ } // Changed message location
+            else { dataList.forEach(row => { const fileName = row["FILE_NAME"] || 'N/A'; const createdDate = row["CREATEDDATE"] ? new Date(row["CREATEDDATE"]).toLocaleDateString() : 'N/A'; const tr = document.createElement('tr'); let featureNum = 'N/A', stage = 'N/A'; let isValidForSurvey = false; if (fileName !== 'N/A') { const parts = fileName.split('_'); if (parts.length >= 2 && fileNamePattern.test(parts[0])) { featureNum = parts[0].toUpperCase(); stage = parts[1]; isValidForSurvey = true; } } const optInButtonHtml = `<button class="action-button opt-in" data-feature="${featureNum}" data-stage="${stage}" data-surveytype="Opt-In" title="${isValidForSurvey ? `Create Opt-In survey for ${featureNum}` : 'Invalid list name format'}" ${!isValidForSurvey ? 'disabled' : ''}>Create Opt-In</button>`; const optOutButtonHtml = `<button class="action-button opt-out" data-feature="${featureNum}" data-stage="${stage}" data-surveytype="Opt-Out" title="${isValidForSurvey ? `Create Opt-Out survey for ${featureNum}` : 'Invalid list name format'}" ${!isValidForSurvey ? 'disabled' : ''}>Create Opt-Out</button>`; tr.innerHTML = `<td>${fileName}</td><td>${createdDate}</td><td class="action-cell">${optInButtonHtml}${optOutButtonHtml}</td>`; userListTableBody.appendChild(tr); }); }
+        }
+
+        // --- Fetch User's Lists (Called by Session Check Script) ---
+        async function fetchUserLists() {
+            console.log("Executing fetchUserLists function..."); // Add log here
+            // Ensure DOM elements are available before trying to manipulate them
+            if (!userListTable || !userListTableBody || !userListMessage) {
+                console.error("fetchUserLists called before table elements are ready. Retrying once after short delay...");
+                 // Simple retry mechanism in case of rare timing issues
+                 setTimeout(fetchUserLists, 100);
+                 return;
+            }
+            showLoading(true, "Fetching your lists...");
+            clearUserMessage(errorMessageDiv);
+            userListMessage.textContent = "Loading your lists...";
+            userListMessage.style.display = 'block'; // Show loading message
+            try {
+                const response = await fetch(`/get-lists`);
+                let lists;
+                if (response.status === 401) { const data = await response.json(); alert(data.message || 'Session expired.'); window.location.href = '/login?reason=session_expired'; throw new Error('Unauthorized'); }
+                try { lists = await response.json(); } catch(e){ lists = null; console.warn("Failed to parse /get-lists response as JSON", e); }
+                if (!response.ok) { let errorMsg = `Error ${response.status}`; if(lists && lists.message) { errorMsg += `: ${lists.message}`;} else { const textError = await response.text(); errorMsg += `: ${textError || response.statusText}`; } throw new Error(`Failed to retrieve lists: ${errorMsg}`); }
+                populateUserListTable(lists || []);
+            } catch (err) {
+                 if (err.message !== 'Unauthorized') {
+                    console.error("Error retrieving user lists:", err);
+                    displayUserMessage(errorMessageDiv, "Error retrieving your lists: " + err.message);
+                    populateUserListTable([]); // Show empty table on error
+                 }
+            } finally { showLoading(false); }
+        }
+
+        // --- Fetch Client-Facing Feature Name ---
+        async function fetchFeatureName(featureKey) {
+             clearUserMessage(manualErrorMsg); clearUserMessage(errorMessageDiv);
+             if (!featureNameSpinner || !fetchedManualFeatureNameInput) return null;
+             featureNameSpinner.style.display = 'none'; fetchedManualFeatureNameInput.value = '';
+             if (!featureKey || !fileNamePattern.test(featureKey)) { if (document.activeElement === manualFeatureNumberInput || manualFeatureNumberInput.value === featureKey) { displayUserMessage(manualErrorMsg, 'Invalid Feature Number format (e.g., FEATURE-123).', true); } return null; }
+             featureNameSpinner.style.display = 'inline-block';
+            try {
+                const response = await fetch(`/get-feature-name?featureKey=${encodeURIComponent(featureKey)}`);
+                const data = await response.json();
+                if (!response.ok) { throw new Error(data.message || `Error ${response.status}`); }
+                if (data.clientFacingFeatureName) { const fetchedName = data.clientFacingFeatureName; console.log("Fetched Feature Name:", fetchedName); fetchedManualFeatureNameInput.value = fetchedName; featureNameSpinner.style.display = 'none'; return fetchedName; }
+                else { if (document.activeElement === manualFeatureNumberInput || manualFeatureNumberInput.value === featureKey) { displayUserMessage(manualErrorMsg, `Feature name not found for ${featureKey}. Please check the number.`, true); } featureNameSpinner.style.display = 'none'; return null; }
+            } catch (err) {
+                console.error("Error fetching feature name:", err);
+                 if (document.activeElement === manualFeatureNumberInput || manualFeatureNumberInput.value === featureKey) { displayUserMessage(manualErrorMsg, `Error fetching name: ${err.message}`, true); }
+                featureNameSpinner.style.display = 'none'; return null;
+            }
+        }
+
+        // --- Trigger Backend Qualtrics Creation ---
+        async function triggerQualtricsCreation(surveyType, featureNumber, alphaBeta, clientFacingName, startDate, endDate) {
+            console.log(`Attempting to create Qualtrics survey: Type=${surveyType}, Feature=${featureNumber}, Stage=${alphaBeta}, Name=${clientFacingName}, Start=${startDate}, End=${endDate}`);
+            showLoading(true, "Processing survey request...");
+            clearUserMessage(finalMessageDiv); clearUserMessage(errorMessageDiv); clearUserMessage(manualErrorMsg);
+            try {
+                const response = await fetch('/create-qualtrics-survey', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ surveyType, featureNumber, alphaBeta, clientFacingName, startDate, endDate }) });
+                let result; const contentType = response.headers.get("content-type");
+                 if (response.status === 401) { const data = await response.json(); alert(data.message || 'Session expired.'); window.location.href = '/login?reason=session_expired'; throw new Error('Unauthorized'); }
+                if (contentType && contentType.includes("application/json")) { result = await response.json(); }
+                else { const textResponse = await response.text(); console.error(`Received non-JSON response (${response.status}): ${textResponse.substring(0, 500)}`); throw new Error(`Server error (${response.status}): Unexpected response format received.`); }
+                
+                // Special handling for duplicate survey (409 Conflict status)
+                if (response.status === 409 && result.alreadyExists) {
+                    console.log("Duplicate survey found:", result);
+                    // Display message with HTML intact (contains link to existing survey)
+                    displayUserMessage(errorMessageDiv, result.message, false, true); // Last parameter allows HTML
+                    return; // Exit early, don't treat as error
+                }
+                
+                if (!response.ok || !result.success) { throw new Error(result?.message || `Request failed with status ${response.status}`); }
+                if (!result.surveyId || !result.surveyUrl) { throw new Error("Server responded successfully, but missing survey ID/URL."); }
+                console.log("Qualtrics survey creation process completed:", result);
+                let baseSuccessMessage = `Survey created successfully!<br><a href="${result.surveyUrl}" target="_blank">Open Survey Editor</a> to review dates and publish.`;
+                let sharingWarningMessage = null;
+                if (result.sharingStatus === 'failed') { sharingWarningMessage = `⚠️ **Sharing Issue:** Survey created (ID: ${result.surveyId}), but automatic sharing FAILED. Please contact Charles Mollica.`; }
+                else if (result.sharingStatus === 'user_not_found') { sharingWarningMessage = `⚠️ **Sharing Issue:** Survey created (ID: ${result.surveyId}), but your username wasn't found in Qualtrics for sharing. Please contact Charles Mollica.`; }
+                displayUserMessage(finalMessageDiv, baseSuccessMessage, false, true); // Added fourth parameter to allow HTML rendering
+                if (sharingWarningMessage) { displayUserMessage(errorMessageDiv, sharingWarningMessage, true); }
+            } catch (err) { if (err.message !== 'Unauthorized') { console.error("Error during survey creation:", err); displayUserMessage(errorMessageDiv, `Operation failed: ${err.message}`); } }
+            finally { showLoading(false); }
+        }
+
+        // --- Event Listeners Initialization (runs after DOM is ready) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOMContentLoaded event fired. Attaching listeners...");
+
+            // --- Listener for buttons in User List Table ---
+            if (userListTableBody) {
+                userListTableBody.addEventListener('click', async (event) => {
+                    const button = event.target.closest('.action-button');
+                    if (button && !button.disabled) { 
+                        const surveyType = button.dataset.surveytype; 
+                        const featureNum = button.dataset.feature; 
+                        const stage = button.dataset.stage; 
+                        
+                        if (!featureNum || featureNum === 'N/A' || !stage || stage === 'N/A' || !surveyType) { 
+                            displayUserMessage(errorMessageDiv,'Could not retrieve feature details from button.'); 
+                            return; 
+                        } 
+                        
+                        showLoading(true, `Fetching feature name for ${featureNum}...`); 
+                        clearUserMessage(finalMessageDiv); 
+                        clearUserMessage(errorMessageDiv); 
+                        clearUserMessage(manualErrorMsg); 
+                        
+                        let clientFacingName = await fetchFeatureName(featureNum);
+                        showLoading(false); 
+                        
+                        // If feature name is still blank after fetching, use a placeholder
+                        // This matches the logic in the manual form submission handler
+                        if (!clientFacingName) {
+                            clientFacingName = "**PLEASE UPDATE WITH CLIENT FACING FEATURE NAME**";
+                            console.log(`No feature name found for ${featureNum}. Using placeholder text.`);
+                        }
+                        
+                        // Always proceed to the date modal, even with a placeholder name
+                        showDateModal(surveyType, featureNum, stage, clientFacingName);
+                    } 
+                });
+            } else { console.warn("User list table body not found at DOMContentLoaded."); }
+
+             // --- Listener for Manual Feature Number Input ---
+             if (manualFeatureNumberInput) {
+                 let debounceTimer; const handleFeatureInput = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => { fetchFeatureName(manualFeatureNumberInput.value.trim().toUpperCase()); }, 500); }; manualFeatureNumberInput.addEventListener('input', handleFeatureInput); manualFeatureNumberInput.addEventListener('blur', () => { fetchFeatureName(manualFeatureNumberInput.value.trim().toUpperCase()); }); manualFeatureNumberInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); fetchFeatureName(manualFeatureNumberInput.value.trim().toUpperCase()); manualFeatureNumberInput.blur(); } });
+             } else { console.error("Manual Feature Number input not found at DOMContentLoaded."); }
+
+            // --- Listener for Manual Form Submission ---
+            if (manualSurveyForm) {
+                manualSurveyForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    clearUserMessage(manualErrorMsg);
+    clearUserMessage(finalMessageDiv);
+    clearUserMessage(errorMessageDiv);
+
+    const featureNumber = manualFeatureNumberInput.value.trim().toUpperCase();
+    const stage = manualStageSelect.value;
+    const surveyType = manualSurveyTypeSelect.value;
+    let clientFacingName = fetchedManualFeatureNameInput.value; // Get initial value
+
+    // Attempt to fetch if initially blank and feature number seems valid
+    if (!clientFacingName && fileNamePattern.test(featureNumber)) {
+        showLoading(true, `Verifying feature name for ${featureNumber}...`);
+        clientFacingName = await fetchFeatureName(featureNumber);
+        showLoading(false);
+    }
+
+    // --- MODIFICATION START ---
+    // If, after all attempts, clientFacingName is still blank, use the placeholder.
+    if (!clientFacingName) {
+        clientFacingName = "**PLEASE REPLACE WITH CLIENT FACING FEATURE NAME**";
+    }
+    // --- MODIFICATION END ---
+
+    let errors = [];
+    if (!featureNumber) {
+        errors.push("Feature Number is required.");
+    } else if (!fileNamePattern.test(featureNumber)) {
+        errors.push("Invalid Feature Number format.");
+    }
+    if (!stage) {
+        errors.push("Stage selection is required.");
+    }
+    // The original check for blank clientFacingName is now handled by the placeholder assignment above.
+    // So, we don't need to push an error for it anymore.
+    // OLD: if (!clientFacingName) { errors.push("Client-Facing Feature Name is missing (ensure Feature Number is correct and exists)."); }
+    if (!surveyType) {
+        errors.push("Survey Type selection is required.");
+    }
+
+    if (errors.length > 0) {
+        displayUserMessage(manualErrorMsg, `Error: ${errors.join(' ')}`);
+        return;
+    }
+
+    manualFeatureNumberInput.value = featureNumber;
+    // Now, clientFacingName will either be the actual name or the placeholder
+    showDateModal(surveyType, featureNumber, stage, clientFacingName);
+});
+            } else { console.error("Manual survey form not found at DOMContentLoaded."); }
+
+            // --- Listeners for Modal Buttons ---
+            if (confirmDateSelectionBtn) {
+                confirmDateSelectionBtn.addEventListener('click', () => { const startDate = surveyStartDateInput.value; const endDate = surveyEndDateInput.value; const surveyType = modalSurveyTypeInput.value; const featureNumber = modalFeatureNumberInput.value; const alphaBeta = modalAlphaBetaInput.value; const clientFacingName = modalClientFacingNameInput.value; clearUserMessage(dateModalError); if (!startDate || !endDate) { displayUserMessage(dateModalError, 'Please select both a start and end date.', true); return; } const startDt = new Date(startDate + 'T00:00:00'); const endDt = new Date(endDate + 'T00:00:00'); if (endDt < startDt) { displayUserMessage(dateModalError, 'End date cannot be before the start date.', true); return; } if (!surveyType || !featureNumber || !alphaBeta || !clientFacingName) { displayUserMessage(dateModalError, 'Internal Error: Survey context missing.', true); console.error("Modal context missing!", {surveyType, featureNumber, alphaBeta, clientFacingName}); return; } hideDateModal(); triggerQualtricsCreation(surveyType, featureNumber, alphaBeta, clientFacingName, startDate, endDate); });
+            } else { console.error("Confirm date button not found at DOMContentLoaded."); }
+
+            if (cancelDateSelectionBtn) { cancelDateSelectionBtn.addEventListener('click', hideDateModal); }
+             else { console.error("Cancel date button not found at DOMContentLoaded."); }
+
+            if (dateModal) { dateModal.addEventListener('click', (event) => { if (event.target === dateModal) { hideDateModal(); } }); }
+             else { console.error("Date modal container not found at DOMContentLoaded."); }
+
+            // --- Initial UI State ---
+            populateUserListTable([]); // Initialize with empty message
+            if(featureNameSpinner) featureNameSpinner.style.display = 'none';
+            if(fetchedManualFeatureNameInput) fetchedManualFeatureNameInput.value = '';
+
+            // fetchUserLists(); // *** IMPORTANT: DO NOT CALL fetchUserLists() HERE ANYMORE ***
+                           // It's now called by the session check script earlier.
+
+            console.log("Qualtrics Survey page listeners attached and UI initialized.");
+        }); // End DOMContentLoaded
+    </script>
+</body>
+</html>

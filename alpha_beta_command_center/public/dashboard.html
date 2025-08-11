@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Engagement Dashboard - Alpha/Beta Command Center</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        /* Basic Reset & Body Styles */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background-color: #f9f9f9; color: #333; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding-bottom: 70px; position: relative; }
+        a { text-decoration: none; color: inherit; }
+
+        /* Header (Consistent with other pages) */
+        .header { background: #4e2d82; color: #fff; padding: 10px 20px; text-align: center; width: 100%; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between;}
+        .header h1 { margin: 0 auto; font-size: 1.6em; font-weight: 700; text-shadow: 1px 1px 4px rgba(0,0,0,0.3); padding-left: 100px; /* Adjust padding if needed */ padding-right: 100px; }
+        .header .nav-link { color: #fff; background-color: #6c757d; padding: 8px 15px; border-radius: 4px; font-size: 14px; transition: background-color 0.2s; border: 1px solid #fff; white-space: nowrap;}
+        .header .nav-link:hover { background-color: #5a6268; text-decoration: none; }
+
+        /* Dashboard Container */
+        .dashboard-container {
+            max-width: 1200px; /* Adjust max-width as needed */
+            width: 95%; /* Responsive width */
+            margin: 25px auto;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            display: flex; /* Optional: for centering iframe if needed */
+            justify-content: center; /* Optional: center iframe */
+        }
+
+        /* Iframe specific styling (optional) */
+        .dashboard-container iframe {
+            max-width: 100%; /* Ensure iframe is responsive */
+            border: 1px solid #ccc; /* Optional border */
+        }
+
+        /* Logo */
+        .logo-container { position: fixed; bottom: 10px; right: 10px; z-index: 999; }
+        .logo-container img { width: 120px; height: auto; opacity: 0.8; }
+
+    </style>
+     <!-- Session Check Script for Tool Page (Copied from other tool pages) -->
+     <script>
+        (async () => {
+            try {
+                const response = await fetch('/auth/check-session');
+                if (!response.ok) {
+                     console.error(`Session check failed with status: ${response.status}`);
+                     throw new Error(`Session check failed`);
+                }
+                const data = await response.json();
+                if (!data.loggedIn) {
+                    console.log('User session invalid/expired, redirecting to login.');
+                    window.location.href = '/login';
+                } else {
+                     console.log(`Dashboard Page: User ${data.username} is logged in. Proceeding.`);
+                     // Optionally display username if needed on this page
+                }
+            } catch (error) {
+                console.error('Error during dashboard page session check, redirecting to login:', error);
+                window.location.href = '/login';
+            }
+        })();
+      </script>
+      <!-- End Session Check Script -->
+</head>
+<body>
+
+    <div class="header">
+        <a href="/" class="nav-link">Back to Home</a>
+        <h1>Engagement Dashboard</h1>
+        <div></div> <!-- Placeholder for spacing if needed -->
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Paste the Power BI Iframe Code Here -->
+        <iframe title="Alpha_Beta_Insights_Dashboard" width="1140" height="541.25" src="https://app.powerbi.com/groups/me/apps/673b8ba1-2e32-456e-bcbd-59432f84d118/reports/1b34d21a-bb75-4e22-89cb-334c346ca513?experience=power-bi" frameborder="0" allowFullScreen="true"></iframe>
+        <!-- End Power BI Iframe Code -->
+    </div>
+
+    <div class="logo-container">
+        <img src="Product Operations Logo Small.png" alt="Product Operations Logo">
+    </div>
+
+</body>
+</html>

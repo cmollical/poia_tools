@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Template Management - Alpha/Beta Command Center</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        /* --- Core Styles --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background-color: #f9f9f9; color: #333; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        a { text-decoration: none; color: #4e2d82; } a:hover { text-decoration: underline; }
+
+        /* --- Header & Container Styles --- */
+        .header { width: 100%; background-color: #4e2d82; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 24px; margin: 0; }
+        .header .nav-link { color: #fff; background-color: #6c757d; padding: 8px 15px; border-radius: 4px; font-size: 14px; transition: background-color 0.2s; border: 1px solid #fff; }
+        .header .nav-link:hover { background-color: #5a6268; text-decoration: none; }
+        .container { max-width: 1200px; width: 100%; padding: 20px; margin-top: 20px; }
+        
+        /* --- Section Styles --- */
+        .section { background-color: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .section h2 { margin-bottom: 20px; color: #333; font-size: 20px; }
+        
+        /* --- Template List Styles --- */
+        .template-list { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .template-list th, .template-list td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .template-list th { background-color: #f2f2f2; }
+        .template-list tr:nth-child(even) { background-color: #f9f9f9; }
+        .template-list tr:hover { background-color: #f5f5f5; }
+        
+        /* --- Action Button Styles --- */
+        .action-button { background-color: #4e2d82; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-right: 5px; }
+        .action-button:hover { background-color: #3c2369; }
+        .delete-button { background-color: #dc3545; }
+        .delete-button:hover { background-color: #c82333; }
+        .preview-button { background-color: #28a745; }
+        .preview-button:hover { background-color: #218838; }
+        
+        /* --- Upload Form Styles --- */
+        .upload-form { margin-top: 20px; padding: 20px; border: 1px solid #ddd; border-radius: 4px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group select, .form-group input[type="file"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .form-submit { background-color: #4e2d82; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        .form-submit:hover { background-color: #3c2369; }
+        
+        /* --- Modal Styles --- */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { position: relative; background-color: white; margin: 10% auto; padding: 30px; border-radius: 8px; width: 60%; max-width: 600px; }
+        .close-modal { position: absolute; top: 15px; right: 15px; font-size: 24px; font-weight: bold; cursor: pointer; }
+        .close-modal:hover { color: #4e2d82; }
+        
+        /* --- Status Message Styles --- */
+        .status-message { padding: 10px; margin-bottom: 20px; border-radius: 4px; display: none; }
+        .success-message { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error-message { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
+        /* --- Logo --- */
+        .logo-container { margin-top: auto; padding: 20px; text-align: center; }
+        .logo-container img { max-width: 200px; }
+
+        /* --- Loader --- */
+        .loader-container { display: none; text-align: center; margin: 20px 0; }
+        .loader { display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #4e2d82; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+
+    <!-- Session Check Script -->
+    <script>
+        (async () => {
+            try {
+                const response = await fetch('/auth/check-session');
+                if (!response.ok) {
+                    console.error(`Session check failed with status: ${response.status}`);
+                    throw new Error(`Session check failed`);
+                }
+                const data = await response.json();
+                if (!data.loggedIn) {
+                    console.log('User session invalid/expired, redirecting to login.');
+                    window.location.href = '/login';
+                } else {
+                    console.log(`Tool Page: User ${data.username} is logged in. Proceeding.`);
+                }
+            } catch (error) {
+                console.error('Error during tool page session check, redirecting to login:', error);
+                window.location.href = '/login';
+            }
+        })();
+    </script>
+</head>
+<body>
+    <div class="header">
+        <a href="/" class="nav-link">Back to Home</a>
+        <h1>Template Management</h1>
+        <div></div> <!-- Empty div for spacing -->
+    </div>
+
+    <div class="container">
+        <div id="statusMessage" class="status-message"></div>
+        
+        <div class="section">
+            <h2>Current Templates</h2>
+            <div class="loader-container" id="templateListLoader">
+                <div class="loader"></div>
+                <p>Loading templates...</p>
+            </div>
+            <table class="template-list" id="templateList">
+                <thead>
+                    <tr>
+                        <th>Template Name</th>
+                        <th>Type</th>
+                        <th>Last Modified</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Template list will be populated here -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>Upload New Template</h2>
+            <div class="upload-form">
+                <form id="uploadTemplateForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="templateType">Template Type:</label>
+                        <select id="templateType" name="templateType" required>
+                            <option value="" disabled selected>Select template type</option>
+                            <option value="InviteTemplate_AlphaOptIn">Alpha Opt-In Invitation</option>
+                            <option value="InviteTemplate_AlphaOptOut">Alpha Opt-Out Invitation</option>
+                            <option value="InviteTemplate_BetaOptIn">Beta Opt-In Invitation</option>
+                            <option value="InviteTemplate_BetaOptOut">Beta Opt-Out Invitation</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="templateFile">Template File (.docx):</label>
+                        <input type="file" id="templateFile" name="templateFile" accept=".docx" required>
+                    </div>
+                    <button type="submit" class="form-submit">Upload Template</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Template Information</h2>
+            <div id="previewContent">
+                <!-- Preview content will be inserted here -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="logo-container">
+        <img src="Product Operations Logo Small.png" alt="Product Operations Logo">
+    </div>
+
+    <script>
+        // DOM Elements
+        const templateList = document.getElementById('templateList');
+        const templateListLoader = document.getElementById('templateListLoader');
+        const uploadTemplateForm = document.getElementById('uploadTemplateForm');
+        const statusMessage = document.getElementById('statusMessage');
+        const previewModal = document.getElementById('previewModal');
+        const previewContent = document.getElementById('previewContent');
+        const closeModalButton = document.querySelector('.close-modal');
+        
+        // Function to show status message
+        function showStatusMessage(message, isError = false) {
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message ' + (isError ? 'error-message' : 'success-message');
+            statusMessage.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Function to load templates
+        async function loadTemplates() {
+            templateListLoader.style.display = 'block';
+            try {
+                const response = await fetch('/api/templates');
+                if (!response.ok) {
+                    throw new Error('Failed to load templates');
+                }
+                
+                const templates = await response.json();
+                const tbody = templateList.querySelector('tbody');
+                tbody.innerHTML = '';
+                
+                templates.forEach(template => {
+                    const row = document.createElement('tr');
+                    
+                    // Template name column
+                    const nameCell = document.createElement('td');
+                    nameCell.textContent = template.name;
+                    row.appendChild(nameCell);
+                    
+                    // Type column
+                    const typeCell = document.createElement('td');
+                    typeCell.textContent = getTemplateTypeDescription(template.name);
+                    row.appendChild(typeCell);
+                    
+                    // Last modified column
+                    const modifiedCell = document.createElement('td');
+                    modifiedCell.textContent = new Date(template.lastModified).toLocaleString();
+                    row.appendChild(modifiedCell);
+                    
+                    // Actions column
+                    const actionsCell = document.createElement('td');
+                    
+                    // Preview button
+                    const previewButton = document.createElement('button');
+                    previewButton.className = 'action-button preview-button';
+                    previewButton.textContent = 'Info';
+                    previewButton.addEventListener('click', () => previewTemplate(template.name));
+                    actionsCell.appendChild(previewButton);
+                    
+                    // Download button
+                    const downloadButton = document.createElement('button');
+                    downloadButton.className = 'action-button';
+                    downloadButton.textContent = 'Download';
+                    downloadButton.addEventListener('click', () => downloadTemplate(template.name));
+                    actionsCell.appendChild(downloadButton);
+                    
+                    // Replace button (opens file input)
+                    const replaceButton = document.createElement('button');
+                    replaceButton.className = 'action-button';
+                    replaceButton.textContent = 'Replace';
+                    replaceButton.addEventListener('click', () => {
+                        // Pre-select the template type dropdown
+                        const selectElement = document.getElementById('templateType');
+                        const templateNameWithoutExt = template.name.replace('.docx', '');
+                        
+                        for(let i = 0; i < selectElement.options.length; i++) {
+                            if(selectElement.options[i].value === templateNameWithoutExt) {
+                                selectElement.selectedIndex = i;
+                                break;
+                            }
+                        }
+                        
+                        // Focus on file input
+                        document.getElementById('templateFile').focus();
+                        // Scroll to upload form
+                        document.querySelector('.upload-form').scrollIntoView({behavior: 'smooth'});
+                    });
+                    actionsCell.appendChild(replaceButton);
+                    
+                    row.appendChild(actionsCell);
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                showStatusMessage('Error loading templates: ' + error.message, true);
+            } finally {
+                templateListLoader.style.display = 'none';
+            }
+        }
+        
+        // Get readable description from template name
+        function getTemplateTypeDescription(templateName) {
+            if (templateName.includes('AlphaOptIn')) return 'Alpha Opt-In Invitation';
+            if (templateName.includes('AlphaOptOut')) return 'Alpha Opt-Out Invitation';
+            if (templateName.includes('BetaOptIn')) return 'Beta Opt-In Invitation';
+            if (templateName.includes('BetaOptOut')) return 'Beta Opt-Out Invitation';
+            if (templateName.includes('opt_in_survey')) return 'Opt-In Survey';
+            if (templateName.includes('opt_out_survey')) return 'Opt-Out Survey';
+            return 'Other';
+        }
+        
+        // Function to preview template
+        async function previewTemplate(templateName) {
+            try {
+                const response = await fetch(`/api/templates/${encodeURIComponent(templateName)}/info`);
+                if (!response.ok) {
+                    throw new Error('Failed to load template info');
+                }
+                
+                const templateInfo = await response.json();
+                
+                // Populate modal with template info
+                previewContent.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 10px;">${templateInfo.name}</h3>
+                        <p><strong>Type:</strong> ${getTemplateTypeDescription(templateInfo.name)}</p>
+                        <p><strong>Size:</strong> ${formatFileSize(templateInfo.size)}</p>
+                        <p><strong>Last Modified:</strong> ${new Date(templateInfo.lastModified).toLocaleString()}</p>
+                        <p><strong>Path:</strong> ${templateInfo.path}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3>Template Fields</h3>
+                        <p>This template contains the following placeholder fields:</p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            ${templateInfo.fields ? templateInfo.fields.map(field => `<li>${field}</li>`).join('') : '<li>No fields could be extracted</li>'}
+                        </ul>
+                    </div>
+                `;
+                
+                // Show modal
+                previewModal.style.display = 'block';
+            } catch (error) {
+                showStatusMessage('Error loading template info: ' + error.message, true);
+            }
+        }
+        
+        // Format file size
+        function formatFileSize(sizeInBytes) {
+            if (sizeInBytes < 1024) return sizeInBytes + ' bytes';
+            if (sizeInBytes < 1024 * 1024) return (sizeInBytes / 1024).toFixed(2) + ' KB';
+            return (sizeInBytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+        
+        // Function to download template
+        function downloadTemplate(templateName) {
+            window.location.href = `/api/templates/${encodeURIComponent(templateName)}/download`;
+        }
+        
+        // Handle form submission
+        uploadTemplateForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(uploadTemplateForm);
+            const templateType = formData.get('templateType');
+            const file = formData.get('templateFile');
+            
+            if (!templateType || !file) {
+                showStatusMessage('Please select a template type and file', true);
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/templates/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Upload failed');
+                }
+                
+                const result = await response.json();
+                showStatusMessage('Template uploaded successfully!');
+                uploadTemplateForm.reset();
+                loadTemplates(); // Refresh the list
+            } catch (error) {
+                showStatusMessage('Error uploading template: ' + error.message, true);
+            }
+        });
+        
+        // Close modal when clicking X
+        closeModalButton.addEventListener('click', () => {
+            previewModal.style.display = 'none';
+        });
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === previewModal) {
+                previewModal.style.display = 'none';
+            }
+        });
+        
+        // Load templates when page loads
+        document.addEventListener('DOMContentLoaded', loadTemplates);
+    </script>
+</body>
+</html>

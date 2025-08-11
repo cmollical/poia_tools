@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+    
+<head>
+    <meta charset="UTF-8">
+    <title>Alpha/Beta Command Center</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        /* --- Styles remain the same --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background-color: #f9f9f9; color: #333; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        a { text-decoration: none; color: #4e2d82; } a:hover { text-decoration: underline; }
+
+        /* Header */
+        .header { background: #4e2d82; color: #fff; padding: 15px 20px; text-align: center; width: 100%; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; margin-bottom: 25px; }
+        .header h1 { margin: 0; font-size: 1.8em; font-weight: 700; text-shadow: 1px 1px 4px rgba(0,0,0,0.3); }
+
+        /* Header Logout Button */
+        .header-logout { position: absolute; right: 25px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; }
+        #headerUsername { margin-right: 12px; font-size: 0.9em; color: #e0e0e0; }
+        #headerLogoutButton { background-color: #dc3545; color: #fff; padding: 6px 12px; border: none; border-radius: 4px; font-size: 0.9em; cursor: pointer; transition: background-color 0.2s ease; border: 1px solid #fff; }
+        #headerLogoutButton:hover { background-color: #c82333; }
+
+        /* Welcome Message */
+        #welcomeMessage { text-align: center; font-size: 1.15em; color: #333; margin-bottom: 10px; /* Reduced margin */ display: none; }
+         #welcomeMessage strong { color: #4e2d82; }
+
+        /* Main Content Area */
+        .landing-container { 
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px; 
+            padding: 0 20px 40px 20px; 
+            max-width: 1200px; 
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Tool Card Styling */
+        .tool-card { 
+            background-color: #fff; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            padding: 25px; 
+            width: 100%;
+            max-width: 350px;
+            text-align: center; 
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; 
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 220px;
+        }
+        .tool-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
+        .tool-card h2 { color: #4e2d82; margin-bottom: 15px; font-size: 1.4em; }
+        .tool-card p { font-size: 0.95em; line-height: 1.5; color: #555; margin-bottom: 25px; flex-grow: 1; }
+        .tool-card .launch-button { background-color: #4e2d82; color: #fff; padding: 10px 20px; border: none; border-radius: 4px; font-size: 1em; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease; display: inline-block; margin-top: auto; }
+        .tool-card .launch-button:hover { background-color: #3c2369; }
+        /* Style for disabled/coming soon buttons */
+        .tool-card .launch-button.disabled { background-color: #cccccc; color: #666666; cursor: not-allowed; }
+        .tool-card .launch-button.disabled:hover { background-color: #cccccc; } /* Prevent hover effect */
+
+        /* step number styling */
+        .step-number { margin-right: 6px; background:#4e2d82; color:#fff; border-radius:50%; width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; font-size:0.9em; }
+        
+        /* Hide default Jira collector button */
+        #atlwdg-trigger { display: none !important; }
+
+        /* Footer/Logo */
+        .logo-container { margin-top: auto; padding: 20px; opacity: 0.8; align-self: flex-end; position: fixed; bottom: 10px; right: 10px; }
+        .logo-container img { width: 120px; height: auto; }
+
+        /* Loading Auth state */
+         #loadingAuthStatus { padding: 20px; color: #666; font-style: italic; font-size: 1.1em; text-align: center; width: 100%; }
+
+         /* Style for the help link */
+        .help-link { text-align: center; margin-bottom: 25px; font-size: 0.9em; color: #555; display: none; /* Hide initially */ }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 500px;
+            max-width: 90%;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: -10px;
+        }
+        .close:hover, .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-form {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .modal-form input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .submit-button {
+            background-color: #4e2d82;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .submit-button:hover {
+            background-color: #3c2369;
+        }
+        /* Loader */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4e2d82;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            margin: 10px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Results table styles */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .results-table th, .results-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .results-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .results-table tr:hover {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1> Alpha/Beta Command Center</h1>
+        <!-- Logout Button shown when logged in -->
+        <div id="headerLogoutContainer" class="header-logout" style="display: none;">
+             <button id="headerLogoutButton">Logout</button>
+        </div>
+    </div>
+
+    <!-- Optional: Display Welcome Message here if not just in header -->
+    <p id="welcomeMessage">Welcome, <strong></strong>!</p>
+
+    <!-- Loading Status Indicator -->
+    <div id="loadingAuthStatus">Verifying authentication status...</div>
+
+    <!-- *** ADDED CONFLUENCE LINK HERE *** -->
+    <p id="homeHelpLink" class="help-link">
+        Need help? <a href="https://athenaconfluence.athenahealth.com/spaces/ROIA/pages/748208482/Alpha+Beta+Command+Center+-+User+Guide" target="_blank" title="Opens Confluence User Guide in a new tab">View the User Guide</a>.
+    </p>
+    <!-- ******************************* -->
+
+    <!-- Tool Cards Container - Hidden Initially -->
+    <div class="landing-container" id="toolCardsContainer" style="display: none;">
+        <!-- Existing Card 1 -->
+        <div class="tool-card" style="order: 1;">
+            <h2><span class="step-number">1</span> List Generation & Scrubbing</h2>
+            <p>Generate new client recruitment lists based on filters or scrub an existing list against specific criteria.</p>
+            <a href="/list-tools" class="launch-button">Get List</a>
+        </div>
+        <!-- Existing Card 2 -->
+        <div class="tool-card" style="order: 3;">
+            <h2><span class="step-number">3</span> Marketing Content Generation</h2>
+            <p>Generate templated invite documents (Alpha/Beta Opt-in/Opt-out) using data from generated lists.</p>
+            <a href="/marketing-content" class="launch-button">Generate Content</a>
+        </div>
+        <!-- Existing Card 3 -->
+        <div class="tool-card" style="order: 2;">
+            <h2><span class="step-number">2</span> Create Opt-In or Opt-Out Survey</h2>
+            <p>Create standardized Qualtrics surveys <br>(Opt-In/Opt-Out) based on feature details.</p>
+            <a href="/qualtrics-survey" class="launch-button">Create Survey</a>
+        </div>
+
+        <!-- === NEW CARDS START HERE === -->
+        <div class="tool-card" style="order: 4;">
+            <h2><span class="step-number">4</span> Pull Final Client List</h2>
+            <p>Pull your list of clients to activate in Launch Darkly & add to the Salesforce Object.</p>
+            <a href="/final-client-list" class="launch-button">Pull List</a>
+        </div>
+        <div class="tool-card" style="order: 7;">
+            <h2>Active Clients List</h2>
+            <p>Pull a list of active clients for a specific feature number.</p>
+            <button id="pullClientListBtn" class="launch-button">See Active Clients</button>
+        </div>
+        <div class="tool-card" style="order: 8;">
+            <h2>Template Management</h2>
+            <p>View and update document templates used for invitations and other communications.</p>
+            <a href="/template-admin" class="launch-button">Manage Templates</a>
+        </div>
+        <div class="tool-card" style="order: 5;">
+            <h2>Solicit Client Feedback</h2>
+            <p>Generate and send or schedule feedback requests for clients.</p>
+            <a href="https://studycentral.tools.athenahealth.com/" class="launch-button" target="_blank" rel="noopener">Solicit Feedback</a>
+        </div>
+        <div class="tool-card" style="order: 6;">
+            <h2>Alpha/Beta Insights</h2>
+            <p>Gather data to inform next steps.</p>
+            <a href="https://app.powerbi.com/groups/me/apps/673b8ba1-2e32-456e-bcbd-59432f84d118/reports/1b34d21a-bb75-4e22-89cb-334c346ca513?experience=power-bi" class="launch-button" target="_blank" rel="noopener">View Dashboard</a>
+        </div>
+        <!-- === NEW PLACEHOLDER CARDS END HERE === -->
+
+    </div>
+
+    <!-- Modal for Feature Input -->
+    <div id="featureModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Pull List of Active Clients</h2>
+            <p>Enter a feature number (e.g., FEATURE-456 or FEATURE-7893):</p>
+            <div class="modal-form">
+                <input type="text" id="featureInput" placeholder="FEATURE-456" />
+                <button id="submitFeature" class="submit-button">Submit</button>
+            </div>
+            <div id="featureQueryStatus" style="margin-top: 15px; display: none;">
+                <p>Processing request...</p>
+                <div class="loader"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="logo-container">
+        <img src="Product Operations Logo Small.png" alt="Product Operations Logo">
+    </div>
+
+    <!-- Custom Jira Button at Bottom -->
+    <div style="text-align: center; padding: 20px; margin-bottom: 30px;" id="bottomJiraContainer">
+        <button onclick="jQuery('#atlwdg-trigger').click(); return false;" 
+                style="background-color: #0052CC; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: background-color 0.2s ease;"
+                onmouseover="this.style.backgroundColor='#0065FF'"
+                onmouseout="this.style.backgroundColor='#0052CC'"
+                id="bottomJiraButton" style="display: none;">
+            🐛 Submit Bug, Enhancement, or Feedback
+        </button>
+    </div>
+
+    <script>
+        // --- Core elements ---
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const welcomeMessageStrong = welcomeMessage.querySelector('strong');
+        const headerLogoutContainer = document.getElementById('headerLogoutContainer');
+        const headerUsernameSpan = document.getElementById('headerUsername');
+        const headerLogoutButton = document.getElementById('headerLogoutButton');
+        const toolCardsContainer = document.getElementById('toolCardsContainer');
+        const bottomJiraButton = document.getElementById('bottomJiraButton');
+        const loadingAuthStatus = document.getElementById('loadingAuthStatus');
+        // *** ADDED: Get the help link element ***
+        const homeHelpLink = document.getElementById('homeHelpLink');
+        
+        // --- Feature list modal elements ---
+        const pullClientListBtn = document.getElementById('pullClientListBtn');
+        const featureModal = document.getElementById('featureModal');
+        const closeModalBtn = document.querySelector('.close');
+        const featureInput = document.getElementById('featureInput');
+        const submitFeatureBtn = document.getElementById('submitFeature');
+        const featureQueryStatus = document.getElementById('featureQueryStatus');
+
+        // Simplified function to show logged-in state
+        function showLoggedInUI(username, firstName) {
+            // Use firstName if available, otherwise fall back to username
+            const displayName = firstName || username;
+            welcomeMessageStrong.textContent = displayName;
+            // Username display removed as requested
+            // Display relevant elements
+            welcomeMessage.style.display = 'block';
+            headerLogoutContainer.style.display = 'flex';
+            toolCardsContainer.style.display = 'flex'; // Ensure the container is visible
+            bottomJiraButton.style.display = 'inline-block'; // Show bottom Jira button
+            loadingAuthStatus.style.display = 'none'; // Hide loading message
+            // *** ADDED: Show the help link when logged in ***
+            if(homeHelpLink) homeHelpLink.style.display = 'block';
+        }
+
+        // Function to handle logout
+        async function handleLogout() {
+            try {
+                const response = await fetch('/auth/logout', { method: 'POST' });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    console.log('Logout successful, redirecting to login.');
+                    window.location.href = '/login';
+                } else {
+                    alert('Logout failed: ' + (result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                alert('An error occurred during logout.');
+            }
+        }
+
+        // Check session status on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+             console.log('home.html DOMContentLoaded - Checking session...');
+            try {
+                const response = await fetch('/auth/check-session');
+                if (!response.ok) {
+                     throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('Session Check Result:', data);
+
+                if (data.loggedIn) {
+                    console.log(`User ${data.username} is logged in. Showing main UI.`);
+                    showLoggedInUI(data.username, data.firstName);
+                } else {
+                    console.log('User not logged in. Redirecting to /login');
+                    window.location.href = '/login';
+                }
+
+            } catch (error) {
+                console.error('Error checking session:', error);
+                loadingAuthStatus.textContent = 'Error verifying session. Redirecting to login.';
+                 setTimeout(() => {
+                      window.location.href = '/login';
+                 }, 1500);
+            }
+        });
+
+        // Add logout listener to header button
+        headerLogoutButton.addEventListener('click', handleLogout);
+
+        // --- Feature modal functionality ---
+        // Open the modal when button is clicked
+        pullClientListBtn.addEventListener('click', () => {
+            featureModal.style.display = 'block';
+            featureInput.focus();
+            featureQueryStatus.style.display = 'none';
+        });
+
+        // Close the modal when X is clicked
+        closeModalBtn.addEventListener('click', () => {
+            featureModal.style.display = 'none';
+        });
+
+        // Close the modal when clicking outside of it
+        window.addEventListener('click', (event) => {
+            if (event.target === featureModal) {
+                featureModal.style.display = 'none';
+            }
+        });
+
+        // Handle feature number submission
+        submitFeatureBtn.addEventListener('click', async () => {
+            const featureKey = featureInput.value.trim().toUpperCase();
+            if (!featureKey) {
+                alert('Please enter a feature number');
+                return;
+            }
+            
+            // Show loading indicator
+            featureQueryStatus.style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/active-clients', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ featureKey })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+                
+                // Check if response is an Excel file or JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('spreadsheetml')) {
+                    // Handle direct Excel file download (small datasets <= 200 rows)
+                    console.log('[Active Clients] Direct Excel download detected');
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    
+                    // Get filename from Content-Disposition header or create default
+                    const contentDisposition = response.headers.get('content-disposition');
+                    let filename = `active_clients_${featureKey}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                    if (contentDisposition) {
+                        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                        if (filenameMatch) {
+                            filename = filenameMatch[1];
+                        }
+                    }
+                    
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    
+                    // Show success message
+                    alert(`Active clients Excel file downloaded successfully: ${filename}`);
+                    
+                    // Close the input modal
+                    featureModal.style.display = 'none';
+                    featureInput.value = '';
+                } else {
+                    // Handle JSON response (large datasets or errors)
+                    const data = await response.json();
+                    
+                    if (data.success && data.downloadId) {
+                        // Two-step download process for large datasets
+                        console.log(`[Active Clients] Large dataset detected (${data.count} rows), initiating two-step download with ID: ${data.downloadId}`);
+                        
+                        // Show status message
+                        alert(`Found ${data.count} active clients. Large dataset detected - download will begin automatically using optimized process.`);
+                        
+                        // Trigger the download immediately
+                        try {
+                            const downloadUrl = `/api/download-active-clients?downloadId=${data.downloadId}`;
+                            console.log(`[Active Clients] Initiating download from: ${downloadUrl}`);
+                            
+                            const downloadResponse = await fetch(downloadUrl, {
+                                method: 'GET',
+                                credentials: 'include'
+                            });
+                            
+                            if (!downloadResponse.ok) {
+                                throw new Error(`Download failed with status: ${downloadResponse.status}`);
+                            }
+                            
+                            const blob = await downloadResponse.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            
+                            // Get filename from Content-Disposition header
+                            const contentDisposition = downloadResponse.headers.get('content-disposition');
+                            let filename = `active_clients_${featureKey}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                            if (contentDisposition) {
+                                const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                                if (filenameMatch) {
+                                    filename = filenameMatch[1];
+                                }
+                            }
+                            
+                            link.download = filename;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            window.URL.revokeObjectURL(url);
+                            
+                            console.log(`[Active Clients] Two-step download completed successfully: ${filename}`);
+                            alert(`Active clients Excel file downloaded successfully: ${filename}`);
+                            
+                        } catch (downloadError) {
+                            console.error('[Active Clients] Two-step download failed:', downloadError);
+                            throw new Error(`Download failed: ${downloadError.message}`);
+                        }
+                        
+                        // Close the input modal
+                        featureModal.style.display = 'none';
+                        featureInput.value = '';
+                        
+                    } else if (data.message) {
+                        // Error response
+                        throw new Error(data.message);
+                    } else {
+                        // Unexpected response format
+                        throw new Error('Unexpected response format');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error fetching active clients:', error);
+                alert(`Error fetching active clients: ${error.message}`);
+            } finally {
+                featureQueryStatus.style.display = 'none';
+            }
+        });
+        
+        // Export to CSV function
+        function exportToCSV(data, filename) {
+            if (!data || !data.length) {
+                alert('No data to export');
+                return;
+            }
+            
+            const headers = Object.keys(data[0]);
+            const csvRows = [];
+            
+            // Add headers
+            csvRows.push(headers.join(','));
+            
+            // Add data rows
+            for (const row of data) {
+                const values = headers.map(header => {
+                    const val = row[header] !== null ? row[header] : '';
+                    const escaped = String(val).replace(/"/g, '""'); // Escape double quotes
+                    return `"${escaped}"`; // Wrap in quotes
+                });
+                csvRows.push(values.join(','));
+            }
+            
+            // Create blob and download
+            const csvString = csvRows.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            
+            const link = document.createElement('a');
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename + '.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        console.log('home.html script loaded.');
+        // --- END OF SCRIPT SECTION ---
+    </script>
+
+    <!-- jQuery (required for Jira issue collector) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Jira Issue Collector -->
+    <script src="https://athenajira.athenahealth.com/plugins/servlet/issueCollectorBootstrap.js?collectorId=6cc5d9b2&locale=en_US"></script>
+
+</body>
+</html>

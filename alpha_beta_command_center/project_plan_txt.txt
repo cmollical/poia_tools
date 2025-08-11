@@ -1,0 +1,69 @@
+Alpha/Beta Automation and Centralization Project
+
+Executive Summary
+Today, the Alpha/Beta testing process at athenahealth relies heavily on manual interventions from Client Recruitment and Product Operations (PrOps) teams. Tasks such as list generation, content creation, customer marketing/CSM coordination, and Salesforce synchronization are operationally intensive and time-consuming. Additionally, LaunchDarkly toggling, Jira task creation, and survey management are prone to human error due to their complexity. This proposal outlines an initiative to fully automate and centralize this process into a single platform where Product Owners can independently manage their Alpha/Beta testing. The goal is to significantly reduce operational overhead, streamline workflows, and accelerate feature testing and deployment cycles.
+
+Business Value
+•	Reduced Operational Overhead: By automating manual processes, PrOps and Client Recruitment can focus on higher-value strategic tasks such as deeper client engagement, proactive market research, and enhanced Feature roadmap planning.
+•	Accelerated Testing Cycles: Product Owners gain direct control, enabling faster execution and iterations.
+•	Improved Data Accuracy & Consistency: Centralized automation eliminates manual errors and ensures data integrity across platforms (Salesforce, Snowflake, LaunchDarkly, Jira).
+•	Enhanced Visibility & Reporting: Automated survey management and built-in dashboards provide real-time feedback loops, enhancing decision-making.
+
+Current Challenges
+•	High manual workload in list processing, content creation, customer marketing coordination, and Salesforce updates.
+•	Time-consuming manual creation and management of Jira Epics and Issues.
+•	Inefficient management of client opt-in/opt-out processes and SFPI baseline tracking.
+•	Complexity in handling client lists and various recruitment workflows, including randomization and filtering processes, which automation will address through standardized data handling, automated randomization methods, and integrated filtering capabilities.
+Proposed Automated Workflow
+1. List Generation & Curation (Completed):
+•	Automated generation and curation of lists via an intuitive web UI.
+•	Integration with existing data sources (Snowflake, dashboards).
+2. Automated Content Creation (In development):
+•	Auto-filled templates based on Feature/ Salesforce data for emails and recruitment messaging.
+•	Integrated AI-driven content suggestions for messaging optimization.
+3. Form & Survey Automation:
+•	Automatic creation of Opt-in/ Opt-out form (migrate to Qualtrics).
+•	Inclusion of SFPI questions in Opt-in/ Opt-out surveys to establish baseline satisfaction more consistently.
+o	Note: we do no not currently have parity between clients surveyed for baseline/ alpha/beta and this will resolve that.
+4. Jira Integration:
+•	Automatic Epic creation upon Alpha/Beta initiation.
+•	Auto-generation of Jira Issues for each wave (Alpha 1, Alpha 2, Beta 1, Beta 2, etc.…).
+•	Subtasks automatically populated for specific action steps (CSM approval, customer marketing coordination, etc.).
+5. LaunchDarkly & Salesforce Integration:
+•	Automated list uploads and synchronization to LaunchDarkly (if possible. If not, an exportable excel file).
+•	Auto-sync participating clients to Salesforce Alpha/ Beta object directly from LaunchDarkly.
+6. Opt-Out Management:
+•	Self-service client opt-out mechanism (exploring Qualtrics), automatically updating LaunchDarkly, Salesforce and Reporting.
+7. Post-Test Survey Automation:
+•	Automatic triggering of satisfaction surveys via Qualtrics for Alpha/ Beta satisfaction (user input required to determine timing).
+•	Integrated analytics for easy baseline versus post-test comparisons.
+
+Project Implementation Plan
+Phase 1: Discovery & Requirements Gathering
+•	Document full requirements, refine workflows, and finalize integration logic.
+Phase 2: Backend Infrastructure & API Development
+•	Extend existing Node.js backend (server.js) with new automated endpoints.
+•	Develop APIs for Jira, LaunchDarkly, Salesforce, and Qualtrics integration.
+Phase 3: Frontend & UI Development
+•	Expand existing UI to include new automation features and management dashboards.
+•	User-friendly interfaces to support Product Owner self-service.
+Phase 4: Integrations & Automation
+•	Develop seamless automation scripts for Jira issue/Epic creation.
+•	Establish continuous integration with LaunchDarkly, Salesforce, and Qualtrics.
+Phase 5: QA & Testing
+•	Comprehensive testing across the entire workflow and integrations.
+•	Validate functionality and data accuracy.
+•	Alpha/ Beta testing with PrOps.
+Phase 6: Launch, Training & Documentation
+•	Deploy solution to production environment.
+•	Training sessions and documentation provided to Product Owners.
+
+Timeline
+•	Total Implementation Time: Approximately 5-6 months
+•	Expected Launch: 25.11
+
+Key Outcomes
+•	Product Owners autonomously manage Alpha/Beta testing with minimal operational support.
+•	Significant reduction in manual operational tasks for Product Operations.
+•	Faster, error-free, and data-driven Alpha/Beta testing process.
+

@@ -1,0 +1,425 @@
+import React, { useState, useEffect } from 'react';
+import ApiService from '../services/api';
+
+const StreamlinedWorkflow = ({ processedData, onComplete, onCancel }) => {
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  // Step 1: Project Selection
+  const [selectedProject, setSelectedProject] = useState('ROIA');
+  const [selectedSpace, setSelectedSpace] = useState('ROIA');
+  const [integrationType, setIntegrationType] = useState('both'); // 'jira', 'confluence', 'both'
+  
+  // Step 2: AI Content Preview & Integration Detection
+  const [availableIntegrations, setAvailableIntegrations] = useState({});
+  const [contentPreview, setContentPreview] = useState('');
+  
+  // Step 3: Resource Selection
+  const [availableEpics, setAvailableEpics] = useState([]);
+  const [availablePages, setAvailablePages] = useState([]);
+  const [selectedEpic, setSelectedEpic] = useState('');
+  const [selectedPage, setSelectedPage] = useState('');
+  const [showNewEpicForm, setShowNewEpicForm] = useState(false);
+  const [showNewPageForm, setShowNewPageForm] = useState(false);
+  const [newEpicData, setNewEpicData] = useState({ name: '', description: '' });
+  const [newPageData, setNewPageData] = useState({ title: '', parentId: '' });
+  const [executing, setExecuting] = useState(false);
+
+  // Initialize content preview from processed data
+  useEffect(() => {
+    if (processedData?.classified_intent) {
+      const { summary, description, acceptance_criteria } = processedData.classified_intent;
+      setContentPreview(`${summary}\n\n${description}\n\nAcceptance Criteria:\n${acceptance_criteria?.join('\n- ') || ''}`);
+    }
+  }, [processedData]);
+
+  // Step 1: Project Selection Handler
+  const handleProjectSelection = async () => {
+    if (!selectedProject) {
+      setError('Please select a project');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      // Check available integrations
+      const [jiraHealth, confluenceHealth] = await Promise.all([
+        ApiService.checkJiraHealth().catch(() => ({ status: 'unhealthy' })),
+        ApiService.checkConfluenceHealth().catch(() => ({ status: 'unhealthy' }))
+      ]);
+      
+      setAvailableIntegrations({
+        jira: jiraHealth.status === 'healthy',
+        confluence: confluenceHealth.status === 'healthy'
+      });
+      
+      // Auto-adjust integration type based on availability
+      if (jiraHealth.status !== 'healthy' && confluenceHealth.status === 'healthy') {
+        setIntegrationType('confluence');
+      } else if (jiraHealth.status === 'healthy' && confluenceHealth.status !== 'healthy') {
+        setIntegrationType('jira');
+      }
+      
+      setStep(2);
+    } catch (err) {
+      setError('Failed to check integration status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 2: Content Preview & Integration Selection Handler  
+  const handleIntegrationSelection = async () => {
+    setLoading(true);
+    try {
+      const promises = [];
+      
+      // Load epics if Jira is selected
+      if ((integrationType === 'jira' || integrationType === 'both') && availableIntegrations.jira) {
+        promises.push(
+          ApiService.getJiraEpics(selectedProject, 50)
+            .then(epics => {
+              console.log('Loaded epics data structure:', epics);
+              if (epics && epics.length > 0) {
+                console.log('First epic structure:', JSON.stringify(epics[0], null, 2));
+                console.log('First epic properties:', Object.keys(epics[0]));
+              }
+              setAvailableEpics(epics);
+            })
+            .catch(() => setAvailableEpics([]))
+        );
+      }
+      
+      // Load pages if Confluence is selected
+      if ((integrationType === 'confluence' || integrationType === 'both') && availableIntegrations.confluence) {
+        promises.push(
+          ApiService.getConfluencePages(selectedSpace, 50)
+            .then(pages => setAvailablePages(pages))
+            .catch(() => setAvailablePages([]))
+        );
+      }
+      
+      await Promise.all(promises);
+      setStep(3);
+    } catch (err) {
+      setError('Failed to load resources');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 3: Execute Final Creation
+  const handleExecution = async () => {
+    setExecuting(true);
+    try {
+      const results = {};
+      
+      // Create Jira issue if selected
+      if ((integrationType === 'jira' || integrationType === 'both') && availableIntegrations.jira) {
+        if (showNewEpicForm && newEpicData.name) {
+          // Create new epic first
+          const newEpic = await ApiService.createJiraEpic(
+            newEpicData.name,
+            newEpicData.name,
+            newEpicData.description,
+            selectedProject
+          );
+          results.createdEpic = newEpic;
+          results.jiraIssue = await ApiService.createJiraIssueWithEpic(
+            processedData,
+            newEpic.key,
+            selectedProject
+          );
+        } else if (selectedEpic) {
+          results.jiraIssue = await ApiService.createJiraIssueWithEpic(
+            processedData,
+            selectedEpic,
+            selectedProject
+          );
+        } else {
+          results.jiraIssue = await ApiService.createJiraIssue(processedData, selectedProject);
+        }
+      }
+      
+      // Update Confluence page if selected
+      if ((integrationType === 'confluence' || integrationType === 'both') && availableIntegrations.confluence) {
+        if (showNewPageForm && newPageData.title) {
+          // Create new page logic would go here
+          results.confluencePage = { message: 'New page creation not yet implemented' };
+        } else if (selectedPage) {
+          results.confluencePage = await ApiService.updateConfluencePage(
+            selectedPage,
+            contentPreview,
+            'Updated via AI Project Management Suite'
+          );
+        }
+      }
+      
+      onComplete(results);
+    } catch (err) {
+      setError(`Execution failed: ${err.message}`);
+    } finally {
+      setExecuting(false);
+    }
+  };
+
+  // Render Step 1: Project Selection
+  if (step === 1) {
+    return (
+      <div className="streamlined-workflow">
+        <div className="workflow-card">
+          <h2>🎯 Where are you working?</h2>
+          <div className="project-selection">
+            <div className="input-group">
+              <label>📋 Project Key:</label>
+              <select 
+                value={selectedProject} 
+                onChange={(e) => setSelectedProject(e.target.value)}
+                className="form-select"
+              >
+                <option value="ROIA">ROIA</option>
+                <option value="PROPS">PROPS</option>
+              </select>
+            </div>
+            
+            <div className="input-group">
+              <label>📄 Confluence Space:</label>
+              <select 
+                value={selectedSpace} 
+                onChange={(e) => setSelectedSpace(e.target.value)}
+                className="form-select"
+              >
+                <option value="ROIA">ROIA</option>
+                <option value="PROPS">PROPS</option>
+              </select>
+            </div>
+          </div>
+          
+          {error && <div className="error-message">{error}</div>}
+          
+          <div className="workflow-actions">
+            <button onClick={onCancel} className="btn-secondary">Cancel</button>
+            <button 
+              onClick={handleProjectSelection} 
+              disabled={loading}
+              className="btn-primary"
+            >
+              {loading ? 'Loading...' : 'Continue →'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Step 2: Integration Selection & Content Preview
+  if (step === 2) {
+    return (
+      <div className="streamlined-workflow">
+        <div className="workflow-card">
+          <h2>✨ What would you like to create?</h2>
+          
+          <div className="content-preview">
+            <h3>AI Processed Content:</h3>
+            <div className="preview-box">
+              {contentPreview}
+            </div>
+          </div>
+          
+          <div className="integration-selection">
+            <h3>Select Integration:</h3>
+            <div className="integration-options">
+              {availableIntegrations.jira && (
+                <label className="integration-option">
+                  <input 
+                    type="radio" 
+                    value="jira" 
+                    checked={integrationType === 'jira'}
+                    onChange={(e) => setIntegrationType(e.target.value)}
+                  />
+                  📋 Jira Issue Only
+                </label>
+              )}
+              
+              {availableIntegrations.confluence && (
+                <label className="integration-option">
+                  <input 
+                    type="radio" 
+                    value="confluence" 
+                    checked={integrationType === 'confluence'}
+                    onChange={(e) => setIntegrationType(e.target.value)}
+                  />
+                  📄 Confluence Update Only
+                </label>
+              )}
+              
+              {availableIntegrations.jira && availableIntegrations.confluence && (
+                <label className="integration-option">
+                  <input 
+                    type="radio" 
+                    value="both" 
+                    checked={integrationType === 'both'}
+                    onChange={(e) => setIntegrationType(e.target.value)}
+                  />
+                  🔄 Both Jira & Confluence
+                </label>
+              )}
+            </div>
+          </div>
+          
+          {error && <div className="error-message">{error}</div>}
+          
+          <div className="workflow-actions">
+            <button onClick={() => setStep(1)} className="btn-secondary">← Back</button>
+            <button 
+              onClick={handleIntegrationSelection} 
+              disabled={loading}
+              className="btn-primary"
+            >
+              {loading ? 'Loading Resources...' : 'Load Resources →'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Step 3: Resource Selection & Execute
+  if (step === 3) {
+    return (
+      <div className="streamlined-workflow">
+        <div className="workflow-card">
+          <h2>🚀 Select destination & execute</h2>
+          
+          {/* Jira Epic Selection */}
+          {(integrationType === 'jira' || integrationType === 'both') && availableIntegrations.jira && (
+            <div className="resource-selection">
+              <h3>📋 Epic Selection:</h3>
+              {!showNewEpicForm ? (
+                <div className="selection-row">
+                  <select 
+                    value={selectedEpic} 
+                    onChange={(e) => setSelectedEpic(e.target.value)}
+                    className="form-select"
+                  >
+                    <option value="">Select an epic...</option>
+                    {availableEpics.map(epic => (
+                      <option key={epic.epic_key} value={epic.epic_key}>
+                        {epic.epic_key} | {epic.epic_summary} | {epic.epic_status || 'New'} | {epic.epic_assignee || 'Unassigned'}
+                      </option>
+                    ))}
+                  </select>
+                  <button 
+                    onClick={() => setShowNewEpicForm(true)} 
+                    className="btn-new"
+                  >
+                    + New
+                  </button>
+                </div>
+              ) : (
+                <div className="new-resource-form">
+                  <input 
+                    placeholder="Epic name" 
+                    value={newEpicData.name}
+                    onChange={(e) => setNewEpicData({...newEpicData, name: e.target.value})}
+                    className="form-input"
+                  />
+                  <textarea 
+                    placeholder="Epic description (optional)" 
+                    value={newEpicData.description}
+                    onChange={(e) => setNewEpicData({...newEpicData, description: e.target.value})}
+                    className="form-textarea"
+                  />
+                  <div className="form-actions">
+                    <button 
+                      onClick={() => setShowNewEpicForm(false)} 
+                      className="btn-cancel"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Confluence Page Selection */}
+          {(integrationType === 'confluence' || integrationType === 'both') && availableIntegrations.confluence && (
+            <div className="resource-selection">
+              <h3>📄 Page Selection:</h3>
+              {!showNewPageForm ? (
+                <div className="selection-row">
+                  <select 
+                    value={selectedPage} 
+                    onChange={(e) => setSelectedPage(e.target.value)}
+                    className="form-select"
+                  >
+                    <option value="">Select a page...</option>
+                    {availablePages.map(page => (
+                      <option key={page.id} value={page.id}>
+                        {page.title} | {page.space.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button 
+                    onClick={() => setShowNewPageForm(true)} 
+                    className="btn-new"
+                  >
+                    + New
+                  </button>
+                </div>
+              ) : (
+                <div className="new-resource-form">
+                  <input 
+                    placeholder="Page title" 
+                    value={newPageData.title}
+                    onChange={(e) => setNewPageData({...newPageData, title: e.target.value})}
+                    className="form-input"
+                  />
+                  <select 
+                    value={newPageData.parentId} 
+                    onChange={(e) => setNewPageData({...newPageData, parentId: e.target.value})}
+                    className="form-select"
+                  >
+                    <option value="">Select parent page...</option>
+                    {availablePages.map(page => (
+                      <option key={page.id} value={page.id}>
+                        {page.title}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="form-actions">
+                    <button 
+                      onClick={() => setShowNewPageForm(false)} 
+                      className="btn-cancel"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {error && <div className="error-message">{error}</div>}
+          
+          <div className="workflow-actions">
+            <button onClick={() => setStep(2)} className="btn-secondary">← Back</button>
+            <button 
+              onClick={handleExecution} 
+              disabled={executing}
+              className="btn-execute"
+            >
+              {executing ? '⏳ Creating...' : '🚀 Create & Update'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+export default StreamlinedWorkflow;

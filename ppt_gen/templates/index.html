@@ -1,0 +1,1351 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>athenahealth PowerPoint Generator | Product Operations</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- athenahealth uses Proxima Nova but it's commercial, so using Source Sans Pro which is close -->
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      /* Official athenahealth colors */
+      --primary: #006BA6;        /* athena blue - primary color */
+      --primary-light: #B6DCF2;  /* athena light blue */
+      --primary-dark: #004E7C;   /* athena dark blue */
+      --purple: #3F2A56;         /* athena purple */
+      --purple-light: #65328A;   /* lighter purple */
+      --secondary: #56C7A4;      /* athena teal */
+      --secondary-light: #D0F0E7; /* light teal */
+      --green: #6CC04A;          /* athena green */
+      --accent: #FF6F61;         /* coral accent */
+      --accent-light: #FFB7B0;   /* light coral */
+      --gold: #FFBD4F;           /* gold accent */
+      --text: #333333;           /* text color */
+      --text-light: #666666;     /* secondary text */
+      --background: #F5F5F5;     /* light background */
+      --white: #FFFFFF;          /* white */
+      --danger: #F9423A;         /* error red */
+      --success: #56C7A4;        /* success teal */
+      --border-radius: 3px;      /* border radius */
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* shadow */
+      --transition: all 0.2s ease; /* transition */
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Source Sans Pro', sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 0;
+      margin: 0;
+      font-size: 16px;
+      font-weight: 400;
+    }
+    
+    .container {
+      max-width: 1024px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      background-color: #6B4C9D; /* athena purple */
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      position: relative;
+    }
+    
+    .header-logo-container {
+      display: flex;
+      align-items: center;
+      margin-right: 1.5rem;
+    }
+    
+    .header-logo-container svg {
+      max-height: 30px;
+      width: auto;
+    }
+    
+    .header-title-container {
+      display: flex;
+      align-items: center;
+      margin-left: 1.5rem;
+      border-left: 1px solid #ddd;
+      padding-left: 1.5rem;
+    }
+    
+    .app-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: white;
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+    
+    .app-logo {
+      margin-right: 0.75rem;
+      color: var(--primary);
+    }
+    
+    .logo-wrapper {
+      display: flex;
+      align-items: center;
+    }
+    
+    .leaf-icon {
+      color: #7BC144;
+      font-size: 28px;
+      margin-right: 6px;
+      line-height: 1;
+      position: relative;
+      top: -3px;
+    }
+    
+    .athena-text {
+      color: #673AB7;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      font-family: 'Source Sans Pro', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .product-ops-label {
+      font-size: 0.75rem;
+      color: var(--white);
+      background-color: var(--primary-dark);
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--border-radius);
+      margin-left: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    
+    .card {
+      background: var(--white);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      transition: var(--transition);
+      border: 1px solid #E0E0E0;
+      border-top: 3px solid #6B4C9D; /* athena purple */
+    }
+    
+    .card:hover {
+      box-shadow: 0 4px 8px rgba(107, 76, 157, 0.2); /* athena purple shadow */
+    }
+    
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid rgba(107, 76, 157, 0.2); /* athena purple border */
+      padding-bottom: 0.75rem;
+    }
+    
+    .card-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #6B4C9D; /* athena purple */
+      margin: 0;
+    }
+    
+    .card-icon {
+      margin-right: 0.625rem;
+      color: #6B4C9D; /* athena purple */
+      font-size: 1.125rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 0.375rem;
+      font-weight: 600;
+      color: var(--text);
+      font-size: 0.875rem;
+    }
+    
+    select, textarea {
+      width: 100%;
+      padding: 0.5rem 0.625rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid #CCCCCC;
+      border-radius: var(--border-radius);
+      font-family: inherit;
+      font-size: 0.9375rem;
+      transition: var(--transition);
+      color: var(--text);
+      background-color: var(--white);
+    }
+    
+    select:focus, textarea:focus {
+      outline: none;
+      border-color: #6B4C9D; /* athena purple */
+      box-shadow: 0 0 0 2px rgba(107, 76, 157, 0.25); /* athena purple shadow */
+    }
+    
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    .help-text {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      margin-top: 0.25rem;
+      line-height: 1.4;
+    }
+    
+    .help-icon {
+      color: var(--primary);
+      margin-right: 0.25rem;
+      font-size: 0.75rem;
+    }
+    
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      background-color: #F2F2F2;
+      padding: 0.125rem 0.25rem;
+      border-radius: 3px;
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #6B4C9D; /* athena purple */
+      color: var(--white);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: var(--transition);
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      line-height: 1.4;
+      height: 36px;
+    }
+    
+    .btn:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+
+    #generate-btn {
+        margin-right: 10px; /* Add some space between the buttons */
+    }
+    
+    .btn:active {
+      background-color: #5A4082; /* darker purple */
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-icon {
+      margin-right: 0.375rem;
+      font-size: 0.8125rem;
+    }
+    
+    .btn-secondary {
+      background-color: var(--secondary);
+    }
+    
+    .btn-secondary:hover {
+      background-color: var(--secondary-dark);
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+    
+    .btn-outline:hover {
+      background-color: rgba(0, 107, 166, 0.05);
+      box-shadow: none;
+    }
+    
+    .btn-disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background-color: #999999;
+    }
+    
+    .btn-disabled:hover {
+      box-shadow: none;
+      background-color: #999999;
+    }
+    
+    .preview-container {
+      margin: 1.5rem 0;
+      text-align: center;
+      transition: var(--transition);
+    }
+    
+    .preview-img {
+      max-width: 100%;
+      max-height: 350px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      border: 1px solid #E8E8E8;
+    }
+    
+    .flashes {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 1.25rem;
+    }
+    
+    .flash-container {
+      margin-bottom: 1.5rem;
+    }
+
+    .flash-message {
+      color: var(--text);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      display: flex;
+      align-items: center;
+      border-left-width: 4px;
+      border-left-style: solid;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow);
+    }
+
+    .flash-message.error {
+      background-color: #FFF0F0;
+      border-left-color: var(--danger);
+    }
+
+    .flash-message.success {
+      background-color: #F0FFF9;
+      border-left-color: var(--success);
+    }
+    
+    .flash-icon {
+      margin-right: 0.75rem;
+    }
+
+    .flash-message.error .flash-icon {
+      color: var(--danger);
+    }
+
+    .flash-message.success .flash-icon {
+      color: var(--success);
+    }
+
+    .features-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 1.25rem;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 1.125rem;
+      padding-bottom: 1.125rem;
+      border-bottom: 1px solid #E8E8E8;
+    }
+    
+    .feature-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .feature-icon {
+      color: #6B4C9D; /* athena purple */
+      margin-right: 0.75rem;
+      margin-top: 0.25rem;
+      font-size: 1rem;
+    }
+    
+    .feature-text {
+      flex: 1;
+    }
+    
+    .feature-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      color: var(--text);
+      font-size: 1rem;
+    }
+    
+    .feature-description {
+      color: var(--text-light);
+      font-size: 0.875rem;
+      line-height: 1.4;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .card {
+        padding: 1.5rem;
+      }
+      
+      .app-title {
+        font-size: 1.5rem;
+      }
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 1.5rem;
+      height: 1.5rem;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 0.5rem;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .progress-container {
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    /* Purple Banner Styles */
+    .top-banner {
+      background-color: #6B4C9D; /* athena purple */
+      color: white;
+      padding: 0.5rem 1rem;
+      width: 100%;
+      position: relative;
+      z-index: 1000;
+    }
+    
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      position: relative;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+    
+    .banner-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .banner-logo {
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo-img {
+      height: 24px;
+      margin-right: 1rem;
+    }
+    
+    .product-ops-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      background-color: rgba(255, 255, 255, 0.2);
+      padding: 0.25rem 0.5rem;
+      border-radius: 2px;
+    }
+    
+    /* User Menu Styles */
+    .user-menu {
+      position: absolute;
+      top: 50%;
+      right: 1rem;
+      transform: translateY(-50%);
+      z-index: 100;
+    }
+    
+    .user-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .user-button {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .user-button:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: white;
+      min-width: 200px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-radius: var(--border-radius);
+      z-index: 1;
+      margin-top: 0.25rem;
+    }
+    
+    .dropdown-content a {
+      color: var(--text);
+      padding: 0.75rem 1rem;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background-color 0.2s;
+    }
+    
+    .dropdown-content a:hover {
+      background-color: var(--background);
+      color: var(--purple);
+    }
+    
+    .user-dropdown:hover .dropdown-content {
+      display: block;
+    }
+    
+    .progress-label {
+      font-size: 0.875rem;
+      color: var(--text-light);
+      margin-bottom: 0.5rem;
+    }
+    
+    .progress-bar-outer {
+      height: 8px;
+      background-color: #E0E0E0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .progress-bar-inner {
+      height: 100%;
+      width: 0%;
+      background-color: #6B4C9D; /* athena purple */
+      border-radius: 4px;
+      transition: width 0.3s ease-in-out;
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 1.5rem; /* Space between the two columns */
+    }
+    
+    .form-group-half {
+      flex: 1; /* Each takes up half the space */
+    }
+    
+    .password-change-banner {
+      background-color: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: var(--border-radius);
+    }
+    
+    .password-change-banner p {
+      margin: 0;
+      font-weight: 600;
+      color: #856404;
+    }
+    
+    .btn-primary {
+      background-color: #6B4C9D;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius);
+      text-decoration: none;
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+    
+    .btn-primary:hover {
+      background-color: #5a3f85;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="app-header">
+      <div class="header-title-container">
+        <h1 class="app-title">Product Operations Generator</h1>
+      </div>
+      
+      {% if current_user.is_authenticated %}
+      <div class="user-menu">
+        <div class="user-dropdown">
+          <button class="user-button"><i class="fas fa-user-circle"></i> {{ current_user.id }} <i class="fas fa-chevron-down"></i></button>
+          <div class="dropdown-content">
+            <a href="{{ url_for('change_password') }}"><i class="fas fa-key"></i> Change Password</a>
+            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash-message {{ category }}">
+              <i class="fas fa-exclamation-circle flash-icon"></i>
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    
+    {% if current_user.is_authenticated and session.get('force_password_change') %}
+    <div class="password-change-banner">
+      <p>Need to change your password?</p>
+      <a href="{{ url_for('change_password') }}" class="btn btn-primary">Change Password Now</a>
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-wand-magic-sparkles card-icon"></i>
+        <h2 class="card-title">Generate a PowerPoint Presentation</h2>
+      </div>
+      
+      <!-- Template preview -->
+      <div id="preview-container" class="preview-container">
+        <img id="preview-img" src="" alt="Template preview" class="preview-img" style="display: none;">
+      </div>
+
+      <form id="ppt-form" action="/generate" method="post" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="predefined_template">
+          <i class="fas fa-file-powerpoint help-icon"></i>
+          Choose a template:
+        </label>
+        <select name="predefined_template" id="predefined_template" required>
+          <option value="">— Select a template —</option>
+          {% for t in templates %}
+            <option value="{{ t }}" {% if t == selected_template %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+        <p class="help-text">
+          <i class="fas fa-info-circle help-icon"></i>
+          Select from available PowerPoint templates to use as a base for your presentation
+        </p>
+      </div>
+
+      <!-- Feature keys input field, shown only when Roadmap_Preview_Deep_Dive template is selected -->
+      <div id="feature-keys-container" class="form-group" style="display: none;">
+        <div class="form-row">
+          <div class="form-group form-group-half">
+            <label for="feature_keys">
+              <i class="fas fa-key help-icon"></i>
+              Enter Feature Keys:
+            </label>
+            <textarea name="feature_keys" id="feature_keys" rows="4" placeholder="e.g., FEATURE-12345, FEATURE-67890">{{ request.form.feature_keys }}</textarea>
+            <p class="help-text">Enter Feature Keys, separated by commas, spaces, or newlines.</p>
+          </div>
+          <div class="form-group form-group-half">
+            <label for="release_codes">
+              <i class="fas fa-calendar-alt help-icon"></i>
+              ...or Enter Release Codes:
+            </label>
+            <textarea name="release_codes" id="release_codes" rows="4" placeholder="e.g., 26.03, 26.07">{{ request.form.release_codes }}</textarea>
+            <p class="help-text">Enter release codes (e.g., YY.MM) to get all features in that release.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn hidden" id="generate-btn">
+          <span id="button-text">Generate</span>
+          <span id="button-spinner" class="spinner hidden"></span>
+        </button>
+        <button type="button" class="btn btn-secondary hidden" id="export-btn" disabled>
+          <span id="export-button-text"><i class="fas fa-file-csv"></i> Export to CSV</span>
+          <span id="export-button-spinner" class="spinner hidden"></span>
+        </button>
+      </div>
+      
+
+    </form>
+    </div>
+    
+    <!-- Features card -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-lightbulb card-icon"></i>
+        <h2 class="card-title">Generator Features</h2>
+      </div>
+      
+      <ul class="features-list">
+        <li class="feature-item">
+          <i class="fas fa-check-circle feature-icon"></i>
+          <div class="feature-text">
+            <div class="feature-title">Roadmap Preview Slides</div>
+            <div class="feature-description">Generate professional roadmap slides with feature details and bullet points pulled directly from Snowflake data</div>
+          </div>
+        </li>
+        <li class="feature-item">
+          <i class="fas fa-check-circle feature-icon"></i>
+          <div class="feature-text">
+            <div class="feature-title">Boulder Slide Generation</div>
+            <div class="feature-description">Create Boulder template slides with formatted content optimized for presenting feature initiatives and strategic roadmaps</div>
+          </div>
+        </li>
+        <li class="feature-item">
+          <i class="fas fa-check-circle feature-icon"></i>
+          <div class="feature-text">
+            <div class="feature-title">Multiple Feature Support</div>
+            <div class="feature-description">Generate slides for multiple features at once by providing multiple feature keys</div>
+          </div>
+        </li>
+        <li class="feature-item">
+          <i class="fas fa-check-circle feature-icon"></i>
+          <div class="feature-text">
+            <div class="feature-title">AI-Generated Content</div>
+            <div class="feature-description">Leverages athenaGPT to automatically generate compelling bullet points that highlight key benefits</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const previewBase = "{{ url_for('static', filename='previews') }}/";
+        const selectEl = document.getElementById('predefined_template');
+        const previewContainer = document.getElementById('preview-container');
+        const previewImg = document.getElementById('preview-img');
+        const featureKeysContainer = document.getElementById('feature-keys-container');
+        const featureKeysInput = document.getElementById('feature_keys');
+        const form = document.getElementById('ppt-form');
+        const buttonText = document.getElementById('button-text');
+        const buttonSpinner = document.getElementById('button-spinner');
+        
+        // Function to update form fields based on template selection
+        function updateFormState() {
+          const selectedTemplate = selectEl.value;
+          const generateBtn = document.getElementById('generate-btn');
+          const exportBtn = document.getElementById('export-btn');
+          const featureKeysContainer = document.getElementById('feature-keys-container');
+          const isRoadmapPreview = selectedTemplate && 
+            selectedTemplate.toLowerCase().includes('roadmap_preview_deep_dive');
+          
+          // Show/hide generate button based on any template selection
+          if (selectedTemplate) {
+            generateBtn.classList.remove('hidden');
+          } else {
+            generateBtn.classList.add('hidden');
+          }
+
+          // Show/hide controls specific to the Deep Dive template
+          if (isRoadmapPreview) {
+            featureKeysContainer.style.display = 'block';
+            exportBtn.classList.remove('hidden');
+            exportBtn.disabled = true; // Ensure it's disabled on template change
+            exportBtn.classList.add('btn-disabled');
+          } else {
+            featureKeysContainer.style.display = 'none';
+            exportBtn.classList.add('hidden');
+          }
+          
+          // Update preview image if available
+          const previewImg = document.getElementById('template-preview');
+          if (previewImg) {
+            const previewPath = templatePreviews[selectedTemplate];
+            if (previewPath) {
+              previewImg.src = previewPath;
+              previewImg.style.display = 'block';
+              previewImg.style.opacity = '0';
+              setTimeout(() => {
+                previewImg.style.opacity = '1';
+              }, 100);
+            } else {
+              previewImg.style.display = 'none';
+            }
+          }
+        }
+        
+        // Show validation error with better styling
+        function showError(message) {
+          // Remove any existing error messages
+          const existingErrors = document.querySelectorAll('.flash-message');
+          existingErrors.forEach(el => el.remove());
+          
+          // Create new error message
+          const flashContainer = document.createElement('ul');
+          flashContainer.className = 'flashes';
+          
+          const flashItem = document.createElement('li');
+          flashItem.className = 'flash-message';
+          
+          const icon = document.createElement('i');
+          icon.className = 'fas fa-exclamation-circle flash-icon';
+          
+          flashItem.appendChild(icon);
+          flashItem.appendChild(document.createTextNode(message));
+          flashContainer.appendChild(flashItem);
+          
+          // Insert at the top of the form
+          const cardHeader = document.querySelector('.card-header');
+          cardHeader.parentNode.insertBefore(flashContainer, cardHeader.nextSibling);
+          
+          // Scroll to error
+          flashContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        // Handle export button click
+        document.getElementById('export-btn').addEventListener('click', function() {
+            form.action = "{{ url_for('export_data') }}";
+            form.submit();
+
+            // Show loading state for export button
+            const exportBtn = document.getElementById('export-btn');
+            const exportButtonText = document.getElementById('export-button-text');
+            const exportButtonSpinner = document.getElementById('export-button-spinner');
+
+            exportBtn.disabled = true;
+            exportBtn.classList.add('btn-disabled');
+            exportButtonText.textContent = 'Exporting...';
+            exportButtonSpinner.classList.remove('hidden');
+            
+            // Start polling for the fileDownload cookie to detect when export is complete
+            const exportCookieCheckInterval = setInterval(function() {
+                if (document.cookie.includes('fileDownload=true')) {
+                    // Clear the interval
+                    clearInterval(exportCookieCheckInterval);
+                    
+                    // Reset the export button state
+                    exportBtn.disabled = false;
+                    exportBtn.classList.remove('btn-disabled');
+                    exportButtonText.innerHTML = '<i class="fas fa-file-csv"></i> Export to CSV';
+                    exportButtonSpinner.classList.add('hidden');
+                    
+                    // Clear the cookie
+                    document.cookie = "fileDownload=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                }
+            }, 500); // Check every 500ms
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', function(e) {
+          const selectedTemplate = selectEl.value;
+          const isRoadmapPreview = selectedTemplate && 
+            selectedTemplate.toLowerCase().includes('roadmap_preview_deep_dive');
+          
+          if (isRoadmapPreview) {
+            const featureKeys = featureKeysInput.value.trim();
+            const releaseCodes = document.getElementById('release_codes').value.trim();
+
+            if (!featureKeys && !releaseCodes) {
+              e.preventDefault();
+              showError('Please enter either Feature Keys or Release Codes to proceed.');
+              featureKeysInput.focus();
+              return false;
+            }
+            
+            // Basic validation for feature keys format, only if feature keys are provided
+            if (featureKeys) {
+                const keys = featureKeys.split(/[\n,]/).filter(k => k.trim() !== '');
+                const isValid = keys.every(k => /^FEATURE-\d+$/i.test(k.trim()));
+                
+                if (!isValid) {
+                  e.preventDefault();
+                  showError('Please enter valid feature keys. Each key must start with "FEATURE-" followed by numbers (e.g., FEATURE-123).');
+                  featureKeysInput.focus();
+                  return false;
+                }
+            }
+          }
+          
+          // Show loading state
+          const submitBtn = document.getElementById('generate-btn');
+          submitBtn.disabled = true;
+          submitBtn.classList.add('btn-disabled');
+          buttonText.textContent = 'Generating...';
+          buttonSpinner.classList.remove('hidden');
+
+          // Start polling for the fileDownload cookie
+          const cookiePoll = setInterval(() => {
+            if (document.cookie.includes('fileDownload=true')) {
+              // Clear the interval
+              clearInterval(cookiePoll);
+
+              // Reset the generate button
+              submitBtn.disabled = false;
+              submitBtn.classList.remove('btn-disabled');
+              buttonText.textContent = 'Generate';
+              buttonSpinner.classList.add('hidden');
+
+              // Enable and reset the export button
+              const exportBtn = document.getElementById('export-btn');
+              const exportButtonText = document.getElementById('export-button-text');
+              const exportButtonSpinner = document.getElementById('export-button-spinner');
+
+              exportBtn.disabled = false;
+              exportBtn.classList.remove('btn-disabled');
+              exportButtonText.innerHTML = '<i class="fas fa-file-csv"></i> Export to CSV';
+              exportButtonSpinner.classList.add('hidden');
+
+              // Clear the cookie by setting an old expiry date
+              document.cookie = "fileDownload=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            }
+          }, 500); // Check every 500ms
+          
+          return true;
+        });
+        
+        // Initialize form state
+        selectEl.addEventListener('change', updateFormState);
+        
+        // Disable export button if input changes
+        const releaseCodesInput = document.getElementById('release_codes');
+        function disableExportOnInput() {
+            const exportBtn = document.getElementById('export-btn');
+            exportBtn.disabled = true;
+            exportBtn.classList.add('btn-disabled');
+        }
+        featureKeysInput.addEventListener('input', disableExportOnInput);
+        releaseCodesInput.addEventListener('input', disableExportOnInput);
+
+        // Handle feature keys paste events to clean up the format
+        featureKeysInput.addEventListener('paste', function(e) {
+          // Short timeout to allow the paste to complete
+          setTimeout(() => {
+            // Get pasted content
+            const content = featureKeysInput.value;
+            
+            // Split by any whitespace or commas
+            const keys = content.split(/[,\s]+/)
+              .map(key => key.trim())
+              .filter(key => key)
+              .map(key => {
+                // Ensure FEATURE- prefix (case insensitive)
+                if (!/^FEATURE-/i.test(key)) {
+                  return 'FEATURE-' + key.replace(/^[Ff][Ee][Aa][Tt][Uu][Rr][Ee][-:]?/g, '');
+                }
+                return key.toUpperCase();
+              });
+            
+            // Format with one key per line
+            featureKeysInput.value = keys.join('\n');
+          }, 0);
+        });
+        
+        // Set initial state
+        updateFormState();
+      });
+    </script>
+  </div>
+  
+  <!-- Login Modal -->
+  <div id="login-modal" class="modal" 
+       data-show-login="{{ 'true' if show_login else 'false' }}" 
+       data-has-flash-messages="{{ 'true' if get_flashed_messages(with_categories=true) else 'false' }}"
+       data-is-authenticated="{{ 'true' if current_user.is_authenticated else 'false' }}">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i class="fas fa-lock"></i> Login Required</h2>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div id="login-error" class="flash-message error" style="display: none;">
+          <i class="fas fa-exclamation-circle flash-icon"></i>
+          <span id="error-message">Invalid username or password</span>
+        </div>
+        
+        <form id="login-form" method="POST" action="{{ url_for('login') }}">
+          <div class="form-group">
+            <label for="username">
+              <i class="fas fa-user form-icon"></i>
+              Username
+            </label>
+            <input type="text" id="username" name="username" required autofocus>
+          </div>
+          <div class="form-group">
+            <label for="password">
+              <i class="fas fa-key form-icon"></i>
+              Password
+            </label>
+            <input type="password" id="password" name="password" required>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+          </div>
+          
+          <div class="login-links">
+            <a href="http://10.4.74.143:3000/login" class="auth-link" target="_blank">
+              <i class="fas fa-user-plus"></i> Register
+            </a>
+            <a href="{{ url_for('reset_request') }}" class="auth-link">
+              <i class="fas fa-key"></i> Forgot Password?
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <style>
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+      animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .modal-content {
+      background-color: var(--white);
+      margin: 10% auto;
+      max-width: 450px;
+      border-radius: var(--border-radius);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      animation: slideDown 0.3s;
+      position: relative;
+    }
+    
+    @keyframes slideDown {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #6B4C9D; /* athena purple */
+      color: white;
+      border-top-left-radius: var(--border-radius);
+      border-top-right-radius: var(--border-radius);
+    }
+    
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+    }
+    
+    .modal-header h2 i {
+      margin-right: 0.5rem;
+    }
+    
+    .modal-body {
+      padding: 1.5rem;
+    }
+    
+    .close {
+      color: white;
+      font-size: 1.75rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    
+    .close:hover {
+      color: #f8f9fa;
+    }
+    
+    /* Form styling for modal */
+    #login-form .form-group {
+      margin-bottom: 1.25rem;
+    }
+    
+    #login-form label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+    }
+    
+    .form-icon {
+      color: #6B4C9D;
+      margin-right: 0.5rem;
+      width: 16px;
+    }
+    
+    #login-form input[type="text"],
+    #login-form input[type="password"] {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ced4da;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    
+    #login-form input[type="text"]:focus,
+    #login-form input[type="password"]:focus {
+      border-color: #6B4C9D;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(107, 76, 157, 0.25);
+    }
+    
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+    
+    /* Flash message styling */
+    #login-error {
+      margin-bottom: 1.25rem;
+    }
+    
+    /* User authentication container */
+    .user-auth-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    
+    /* User info and logout styling */
+    .user-info {
+      display: flex;
+      align-items: center;
+      color: white;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+    
+    .logout-button {
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    .logout-button .btn {
+      padding: 0.1rem 0.5rem;
+      font-size: 0.75rem;
+      color: black;
+      background-color: white;
+      border-color: #ced4da;
+      line-height: 1.2;
+      height: 1.5rem;
+    }
+    
+    .logout-button .btn:hover {
+      background-color: #f8f9fa;
+    }
+    
+    /* Login links styling */
+    .login-links {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e9ecef;
+    }
+    
+    .auth-link {
+      color: #6B4C9D; /* athena purple */
+      text-decoration: none;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+    
+    .auth-link:hover {
+      color: #65328A; /* lighter purple */
+      text-decoration: underline;
+    }
+    
+    .auth-link i {
+      margin-right: 0.375rem;
+      font-size: 0.875rem;
+    }
+    
+    /* Shake animation for modal */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    
+    .shake {
+      animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+  </style>
+  
+  <script>
+    // Login modal functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById('login-modal');
+      const closeBtn = document.querySelector('.close');
+      const loginForm = document.getElementById('login-form');
+      const loginError = document.getElementById('login-error');
+      const errorMessage = document.getElementById('error-message');
+      
+      if (modal) {
+        // Get authentication status and other flags from data attributes
+        const isAuthenticated = modal.dataset.isAuthenticated === 'true';
+        const showLogin = modal.dataset.showLogin === 'true';
+        const hasFlashMessages = modal.dataset.hasFlashMessages === 'true';
+        
+        // Show login modal if needed
+        if (showLogin || hasFlashMessages) {
+          modal.style.display = 'block';
+        }
+        
+        // Function to shake the modal when trying to close it while not authenticated
+        function shakeModal() {
+          const modalContent = modal.querySelector('.modal-content');
+          modalContent.classList.add('shake');
+          setTimeout(function() {
+            modalContent.classList.remove('shake');
+          }, 500);
+        }
+        
+        // Close button should only work if authenticated
+        if (closeBtn) {
+          closeBtn.addEventListener('click', function() {
+            if (isAuthenticated) {
+              modal.style.display = 'none';
+            } else {
+              shakeModal();
+            }
+          });
+        }
+        
+        // Prevent closing the modal by clicking outside if not authenticated
+        window.addEventListener('click', function(event) {
+          if (event.target === modal) {
+            if (isAuthenticated) {
+              modal.style.display = 'none';
+            } else {
+              shakeModal();
+            }
+          }
+        });
+      }
+      
+      // Handle forgot password link
+      const forgotPasswordLink = document.querySelector('.forgot-password');
+      if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          alert('Password reset functionality is coming soon. Please contact your administrator for assistance.');
+        });
+      }
+      
+      // Handle login form submission via AJAX
+      if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          const formData = new FormData(loginForm);
+          const xhr = new XMLHttpRequest();
+          
+          xhr.open('POST', loginForm.action, true);
+          xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+          
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              try {
+                const response = JSON.parse(xhr.responseText);
+                
+                if (response.success) {
+                  // Successful login, reload the page
+                  window.location.reload();
+                } else {
+                  // Show error message
+                  errorMessage.textContent = response.message || 'Login failed';
+                  loginError.style.display = 'flex';
+                }
+              } catch (e) {
+                // If we can't parse the response, reload the page
+                window.location.reload();
+              }
+            } else {
+              // Server error
+              errorMessage.textContent = 'Server error. Please try again.';
+              loginError.style.display = 'flex';
+            }
+          };
+          
+          xhr.onerror = function() {
+            errorMessage.textContent = 'Connection error. Please try again.';
+            loginError.style.display = 'flex';
+          };
+          
+          xhr.send(formData);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

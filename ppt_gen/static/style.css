@@ -1,0 +1,112 @@
+/* Apply provided color palette and modern layout */
+:root {
+  --purple: #4E2D82;
+  --blue: #0466B4;
+  --offwhite: #FEFDFB;
+  --lightgray: #F0F0F0;
+}
+
+body {
+  background: var(--offwhite);
+  color: var(--purple);
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+
+.container {
+  background: var(--lightgray);
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+  margin: 2rem;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+  color: var(--purple);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+select {
+  width: 100%;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+  border: 2px solid var(--purple);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--purple);
+  font-size: 1rem;
+}
+
+button {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  background: var(--blue);
+  color: var(--offwhite);
+  border: 2px solid var(--blue);
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+button:hover {
+  background: var(--purple);
+  border-color: var(--purple);
+}
+
+.flashes {
+  color: #d9534f;
+  margin-bottom: 1rem;
+}
+
+/* Preview container styling */
+#preview-container {
+  display: none;
+  margin-bottom: 1.5rem;
+}
+
+/* Ensure preview image maintains aspect ratio and limits size */
+#preview-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 1.5rem;
+  border: 2px solid var(--purple);
+  border-radius: 4px;
+}
+
+/* Add this to static/css/style.css */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  margin-bottom: 20px;
+}
+
+.user-info {
+  font-weight: bold;
+}
+
+.button.button-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.button.button-secondary:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+}

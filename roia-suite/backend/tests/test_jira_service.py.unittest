@@ -1,0 +1,173 @@
+import unittest
+from unittest import mock
+from app.services.jira_service import JiraService, JiraFeature
+from app.models import ClassifiedIntent, IssueType, Priority
+
+class TestJiraService(unittest.TestCase):
+    """Unit tests for JiraService class."""
+    
+    @mock.patch('app.services.jira_service.JIRA')
+    @mock.patch('app.services.jira_service.os')
+    def test_init_with_valid_credentials(self, mock_os, mock_jira):
+        """Test initializing JiraService with valid credentials."""
+        # Arrange
+        mock_os.environ.get.side_effect = lambda key, default=None: {
+            'JIRA': 'test_token',
+            'JIRA_SERVER': 'https://test.jira.com'
+        }.get(key, default)
+        
+        # Act
+        service = JiraService()
+        
+        # Assert
+        self.assertIsNotNone(service)
+        mock_jira.assert_called_once()
+        self.assertIsNotNone(service.jira_client)
+    
+    @mock.patch('app.services.jira_service.JIRA')
+    @mock.patch('app.services.jira_service.os')
+    def test_init_with_missing_token(self, mock_os, mock_jira):
+        """Test initializing JiraService with missing token."""
+        # Arrange
+        mock_os.environ.get.side_effect = lambda key, default=None: {
+            'JIRA': None,
+            'JIRA_SERVER': 'https://test.jira.com'
+        }.get(key, default)
+        
+        # Act & Assert
+        with self.assertRaises(ValueError):
+            JiraService()
+    
+    @mock.patch('app.services.jira_service.JIRA')
+    def test_get_feature_issues(self, mock_jira):
+        """Test getting feature issues from Jira."""
+        # Arrange
+        # Create mock issues with proper string attributes instead of MagicMock objects
+        mock_issue1 = mock.MagicMock()
+        mock_issue1.key = "ROIA-1"
+        mock_issue1.fields.summary = "Test Feature 1"
+        mock_issue1.fields.status.name = "In Progress"
+        mock_issue1.fields.created = "2025-07-25T10:00:00.000Z"
+        mock_issue1.fields.updated = "2025-07-26T10:00:00.000Z"
+        mock_issue1.fields.assignee.displayName = "Test User"
+        mock_issue1.fields.reporter.displayName = "Test Reporter"
+        # Add string values for the fields causing validation errors
+        mock_issue1.fields.description = "Test description"
+        mock_issue1.fields.resolution = mock.MagicMock()
+        mock_issue1.fields.resolution.name = "Fixed"
+        mock_issue1.fields.resolutiondate = "2025-07-26T12:00:00.000Z"
+        
+        mock_issue2 = mock.MagicMock()
+        mock_issue2.key = "ROIA-2"
+        mock_issue2.fields.summary = "Test Feature 2"
+        mock_issue2.fields.status.name = "Done"
+        mock_issue2.fields.created = "2025-07-24T10:00:00.000Z"
+        mock_issue2.fields.updated = "2025-07-25T10:00:00.000Z"
+        mock_issue2.fields.assignee = None
+        mock_issue2.fields.reporter.displayName = "Test Reporter"
+        # Add string values for the fields causing validation errors
+        mock_issue2.fields.description = "Test description 2"
+        mock_issue2.fields.resolution = mock.MagicMock()
+        mock_issue2.fields.resolution.name = "Fixed"
+        mock_issue2.fields.resolutiondate = "2025-07-25T12:00:00.000Z"
+        
+        mock_service = mock.MagicMock()
+        mock_service.jira_client.search_issues.return_value = [mock_issue1, mock_issue2]
+        
+        # Act
+        result = JiraService.get_feature_issues(mock_service, max_results=10)
+        
+        # Assert
+        self.assertEqual(2, len(result))
+        self.assertEqual("ROIA-1", result[0].feature_key)
+        self.assertEqual("Test Feature 1", result[0].feature_summary)
+        self.assertEqual("In Progress", result[0].feature_status)
+        self.assertEqual("Test User", result[0].feature_assignee)
+        
+        self.assertEqual("ROIA-2", result[1].feature_key)
+        self.assertEqual("Test Feature 2", result[1].feature_summary)
+        self.assertEqual("Done", result[1].feature_status)
+        self.assertIsNone(result[1].feature_assignee)
+    
+    @mock.patch('app.services.jira_service.JIRA')
+    def test_create_issue_from_intent(self, mock_jira):
+        """Test creating a Jira issue from a classified intent."""
+        # Arrange
+        mock_new_issue = mock.MagicMock()
+        mock_new_issue.key = "ROIA-123"
+        
+        mock_jira_client = mock.MagicMock()
+        mock_jira_client.create_issue.return_value = mock_new_issue
+        
+        mock_service = mock.MagicMock()
+        mock_service.jira_client = mock_jira_client
+        
+        classified_intent = ClassifiedIntent(
+            type=IssueType.STORY,
+            summary="Test Story",
+            description="This is a test story",
+            acceptance_criteria=["Criteria 1", "Criteria 2"],
+            priority=Priority.MEDIUM,
+            epic_keywords=["test", "story"],
+            confidence=0.9
+        )
+        
+        # Act
+        result = JiraService.create_issue_from_intent(mock_service, classified_intent, project_key="ROIA")
+        
+        # Assert
+        self.assertEqual("ROIA-123", result)
+        mock_jira_client.create_issue.assert_called_once()
+        
+        # Check that the fields were passed correctly
+        call_args = mock_jira_client.create_issue.call_args[1]["fields"]
+        self.assertEqual("ROIA", call_args["project"]["key"])
+        self.assertEqual("Test Story", call_args["summary"])
+        self.assertTrue("This is a test story" in call_args["description"])
+        self.assertEqual("Story", call_args["issuetype"]["name"])
+        self.assertEqual("Medium", call_args["priority"]["name"])
+    
+    @mock.patch('app.services.jira_service.JIRA')
+    def test_health_check_healthy(self, mock_jira):
+        """Test health check when Jira is healthy."""
+        # Arrange
+        mock_jira_client = mock.MagicMock()
+        mock_jira_client.server_info.return_value = {"version": "9.0.0"}
+        
+        mock_service = mock.MagicMock()
+        mock_service.jira_client = mock_jira_client
+        mock_service.jira_token = "test_token"
+        mock_service.jira_server = "https://test.jira.com"
+        
+        # Act
+        result = JiraService.health_check(mock_service)
+        
+        # Assert
+        self.assertTrue(result["connected"])
+        self.assertEqual({"version": "9.0.0"}, result["server_info"])
+        self.assertTrue(result["token_configured"])
+        self.assertTrue(result["server_configured"])
+    
+    @mock.patch('app.services.jira_service.JIRA')
+    def test_health_check_unhealthy(self, mock_jira):
+        """Test health check when Jira is unhealthy."""
+        # Arrange
+        mock_jira_client = mock.MagicMock()
+        mock_jira_client.server_info.side_effect = Exception("Connection error")
+        
+        mock_service = mock.MagicMock()
+        mock_service.jira_client = mock_jira_client
+        mock_service.jira_token = "test_token"
+        mock_service.jira_server = "https://test.jira.com"
+        
+        # Act
+        result = JiraService.health_check(mock_service)
+        
+        # Assert
+        self.assertFalse(result["connected"])
+        self.assertEqual("Connection error", result["error"])
+        self.assertTrue(result["token_configured"])
+        self.assertTrue(result["server_configured"])
+
+if __name__ == "__main__":
+    unittest.main()

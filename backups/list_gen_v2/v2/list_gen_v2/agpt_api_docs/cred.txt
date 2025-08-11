@@ -1,0 +1,18 @@
+# API Keys and Authentication Tokens
+# Format: service_name:key_or_token
+
+# athenaGPT API Key
+athenagpt:ca4406cac48e9f63f37113174d314b8a52b46cc29c68e7369941fa324aea5009
+
+# Snowflake Authentication
+# Note: For token-based auth, use snowflake_token instead of snowflake_password
+snowflake_account:CM97887-ATHENAHEALTH
+snowflake_user:WTHOMAS
+snowflake_password:  # Using password auth for testing
+snowflake_token:eyJraWQiOiI4OTA2NzA1NTk5NzkwIiwiYWxnIjoiRVMyNTYifQ.eyJwIjoiMTM1ODYyMTYxOjUzMDY5MiIsImlzcyI6IlNGOjEwMDMiLCJleHAiOjE3NDczOTUyMjd9.M5pmbDKCl4Ne_LJuo-G5WHZ1GYzm9b7icR_N1N6owfomdXoCFXP_adLjzR5fS_6pm6W3XPmdCB2JbF5GELnIQg
+
+# Optional Snowflake connection parameters
+snowflake_role:PLATFORM_OPS_SUPPORT_DEV_R
+snowflake_warehouse:
+snowflake_database:
+snowflake_schema:

@@ -1,0 +1,207 @@
+import unittest
+from unittest import mock
+from fastapi.testclient import TestClient
+
+from app.main import app
+from app.models import ClassifiedIntent, IssueType, Priority, ProcessTranscriptResponse, EpicMatch
+
+client = TestClient(app)
+
+class TestJiraRouter(unittest.TestCase):
+    """Integration tests for Jira API endpoints."""
+    
+    @mock.patch('app.routers.jira.JiraService')
+    def test_get_features_success(self, mock_jira_service):
+        """Test successful features retrieval."""
+        # Arrange
+        mock_features = [
+            {
+                "feature_key": "ROIA-1",
+                "feature_summary": "Test Feature 1",
+                "feature_status": "In Progress",
+                "feature_assignee": "Test User",
+                "create_date": "2025-07-25T10:00:00.000Z",
+                "last_updated": "2025-07-26T10:00:00.000Z"
+            },
+            {
+                "feature_key": "ROIA-2",
+                "feature_summary": "Test Feature 2", 
+                "feature_status": "Done",
+                "feature_assignee": None,
+                "create_date": "2025-07-24T10:00:00.000Z", 
+                "last_updated": "2025-07-25T10:00:00.000Z"
+            }
+        ]
+        
+        mock_service_instance = mock.MagicMock()
+        mock_service_instance.get_feature_issues.return_value = mock_features
+        mock_jira_service.return_value = mock_service_instance
+        
+        # Act
+        response = client.get("/api/v1/jira/features")
+        
+        # Assert
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(2, len(response.json()))
+        self.assertEqual("ROIA-1", response.json()[0]["feature_key"])
+        self.assertEqual("Test Feature 1", response.json()[0]["feature_summary"])
+    
+    @mock.patch('app.routers.jira.JiraService')
+    def test_get_features_error(self, mock_jira_service):
+        """Test features retrieval with error."""
+        # Arrange
+        mock_service_instance = mock.MagicMock()
+        mock_service_instance.get_feature_issues.side_effect = Exception("Test error")
+        mock_jira_service.return_value = mock_service_instance
+        
+        # Act
+        response = client.get("/api/v1/jira/features")
+        
+        # Assert
+        self.assertEqual(500, response.status_code)
+        self.assertIn("Failed to retrieve features from Jira", response.json()["detail"])
+    
+    @mock.patch('app.routers.jira.JiraService')
+    def test_create_issue_from_intent_success(self, mock_jira_service):
+        """Test successful Jira issue creation."""
+        # Arrange
+        mock_service_instance = mock.MagicMock()
+        mock_service_instance.create_issue_from_intent.return_value = "ROIA-123"
+        mock_service_instance.jira_server = "https://athenajira.athenahealth.com/"
+        mock_jira_service.return_value = mock_service_instance
+        
+        request_data = ProcessTranscriptResponse(
+            success=True,
+            classified_intent=ClassifiedIntent(
+                type=IssueType.STORY,
+                summary="Test Story",
+                description="This is a test story",
+                acceptance_criteria=["Criteria 1", "Criteria 2"],
+                priority=Priority.MEDIUM,
+                epic_keywords=["test", "story"],
+                confidence=0.9
+            ),
+            epic_match=EpicMatch(
+                epic_id="ROIA-100",
+                epic_name="Test Epic",
+                match_confidence=0.8,
+                keywords_matched=["test"]
+            ),
+            cleaned_transcript="This is a cleaned transcript",
+            processing_time_ms=500,
+            error_message=None
+        )
+        
+        # Act
+        response = client.post("/api/v1/jira/create-from-intent?project_key=ROIA", json=request_data.model_dump())
+        
+        # Assert
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("ROIA-123", response.json()["issue_key"])
+        self.assertEqual("https://athenajira.athenahealth.com/browse/ROIA-123", response.json()["issue_url"])
+        self.assertTrue(response.json()["success"])
+        mock_service_instance.create_issue_from_intent.assert_called_once()
+    
+    @mock.patch('app.routers.jira.JiraService')
+    def test_create_issue_invalid_intent(self, mock_jira_service):
+        """Test Jira issue creation with invalid intent."""
+        # Arrange
+        mock_service_instance = mock.MagicMock()
+        mock_jira_service.return_value = mock_service_instance
+        
+        request_data = ProcessTranscriptResponse(
+            success=False,
+            classified_intent=None,
+            epic_match=None,
+            cleaned_transcript="This is a cleaned transcript",
+            processing_time_ms=500,
+            error_message="Processing failed"
+        )
+        
+        # Act
+        response = client.post("/api/v1/jira/create-from-intent", json=request_data.model_dump())
+        
+        # Assert
+        self.assertEqual(400, response.status_code)
+        self.assertIn("No valid classified intent provided", response.json()["detail"])
+        mock_service_instance.create_issue_from_intent.assert_not_called()
+    
+    @mock.patch('app.routers.jira.JiraService')
+    def test_create_issue_error(self, mock_jira_service):
+        """Test Jira issue creation with error."""
+        # Arrange
+        mock_service_instance = mock.MagicMock()
+        mock_service_instance.create_issue_from_intent.side_effect = Exception("Test error")
+        mock_jira_service.return_value = mock_service_instance
+        
+        request_data = ProcessTranscriptResponse(
+            success=True,
+            classified_intent=ClassifiedIntent(
+                type=IssueType.STORY,
+                summary="Test Story",
+                description="This is a test story",
+                acceptance_criteria=["Criteria 1", "Criteria 2"],
+                priority=Priority.MEDIUM,
+                epic_keywords=["test", "story"],
+                confidence=0.9
+            ),
+            epic_match=None,
+            cleaned_transcript="This is a cleaned transcript",
+            processing_time_ms=500,
+            error_message=None
+        )
+        
+        # Act
+        response = client.post("/api/v1/jira/create-from-intent", json=request_data.model_dump())
+        
+        # Assert
+        self.assertEqual(500, response.status_code)
+        self.assertIn("Failed to create issue in Jira", response.json()["detail"])
+    
+    @mock.patch('app.routers.jira.JiraService')
+    def test_jira_health_healthy(self, mock_jira_service):
+        """Test Jira health check when healthy."""
+        # Arrange
+        mock_service_instance = mock.MagicMock()
+        mock_service_instance.health_check.return_value = {
+            "connected": True,
+            "server_info": {"version": "9.0.0"},
+            "token_configured": True,
+            "server_configured": True
+        }
+        mock_jira_service.return_value = mock_service_instance
+        
+        # Act
+        response = client.get("/api/v1/jira/health")
+        
+        # Assert
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("healthy", response.json()["status"])
+        self.assertEqual("jira", response.json()["service"])
+        self.assertTrue("server_info" in response.json())
+        self.assertTrue("token_configured" in response.json())
+    
+    @mock.patch('app.routers.jira.JiraService')
+    def test_jira_health_unhealthy(self, mock_jira_service):
+        """Test Jira health check when unhealthy."""
+        # Arrange
+        mock_service_instance = mock.MagicMock()
+        mock_service_instance.health_check.return_value = {
+            "connected": False,
+            "error": "Connection error",
+            "token_configured": True,
+            "server_configured": True
+        }
+        mock_jira_service.return_value = mock_service_instance
+        
+        # Act
+        response = client.get("/api/v1/jira/health")
+        
+        # Assert
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("unhealthy", response.json()["status"])
+        self.assertEqual("jira", response.json()["service"])
+        self.assertEqual("Connection error", response.json()["error"])
+
+if __name__ == "__main__":
+    unittest.main()

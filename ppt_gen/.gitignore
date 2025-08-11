@@ -1,0 +1,50 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs and temporary files
+logs/
+*.log
+temp/
+tmp/
+
+# Generated PowerPoint files
+generated/
+
+# Archive directory
+Archive/
+
+# Large files (>50MB)
+*.pptx
+!ppt_templates/*.pptx
+
+# Specific large files that exceed GitHub's limits
+Extended Roadmap_example.pptx
+
+# Example files that might be large
+*example*.pptx
+
+# Uploaded templates
+uploads/
+
+# Environment variables and secrets
+.env
+*.env
+env/
+venv/
+ENV/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Snowflake credentials
+*password*
+*credentials*

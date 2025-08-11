@@ -1,0 +1,6 @@
+Defaulting to user installation because normal site-packages is not writeable
+Collecting pyodbc
+  Downloading pyodbc-5.2.0-cp313-cp313-win_amd64.whl.metadata (2.8 kB)
+Downloading pyodbc-5.2.0-cp313-cp313-win_amd64.whl (69 kB)
+Installing collected packages: pyodbc
+Successfully installed pyodbc-5.2.0

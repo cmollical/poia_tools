@@ -1,0 +1,209 @@
+logical_tables:
+  - name: interested_customers
+    table: corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_interested_customers
+    dimensions:
+      - name: ContextID
+        expr: ContextID
+        data_type: varchar
+        description: Unique context identifier
+      - name: feature_key
+        expr: feature_key
+        data_type: varchar
+        description: Feature key of interest
+      - name: interested
+        expr: interested
+        data_type: varchar
+        description: Interested customer indicator
+
+  - name: general_population
+    table: corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_general_population_customers
+    dimensions:
+      - name: ContextID
+        expr: ContextID
+        data_type: varchar
+      - name: feature_key
+        expr: feature_key
+        data_type: varchar
+      - name: interested
+        expr: interested
+        data_type: varchar
+
+  - name: voc_customers
+    table: corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_voc_customers
+    dimensions:
+      - name: ContextID
+        expr: ContextID
+        data_type: varchar
+      - name: feature_key
+        expr: feature_key
+        data_type: varchar
+      - name: interested
+        expr: interested
+        data_type: varchar
+
+  - name: customer_dimensions
+    table: corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_customer_dimentions
+    dimensions:
+      - name: ContextID
+        expr: ContextID
+        data_type: varchar
+      - name: Account_Name
+        expr: Account_Name
+        data_type: varchar
+      - name: CSM_Tier
+        expr: CSM_Tier
+        data_type: varchar
+      - name: CS_Team
+        expr: CS_Team
+        data_type: varchar
+      - name: Specialty
+        expr: Specialty
+        data_type: varchar
+      - name: Client_Relationship_Type
+        expr: Client_Relationship_Type
+        data_type: varchar
+      - name: Full_Name
+        expr: Full_Name
+        data_type: varchar
+      - name: Email
+        expr: Email
+        data_type: varchar
+      - name: User_ID
+        expr: User_ID
+        data_type: varchar
+      - name: CSM_Name
+        expr: CSM_Name
+        data_type: varchar
+      - name: CSM_Email
+        expr: CSM_Email
+        data_type: varchar
+      - name: NPS_Status
+        expr: NPS_Status
+        data_type: varchar
+      - name: Time_Zone
+        expr: Time_Zone
+        data_type: varchar
+      - name: Billing_State
+        expr: Billing_State
+        data_type: varchar
+      - name: Alpha_Beta_Status
+        expr: Alpha_Beta_Status
+        data_type: varchar
+      - name: Clinicals_Status
+        expr: Clinicals_Status
+        data_type: varchar
+      - name: Collector_Status
+        expr: Collector_Status
+        data_type: varchar
+      - name: Communicator_Status
+        expr: Communicator_Status
+        data_type: varchar
+      - name: Hospital_Clinicals_Status
+        expr: Hospital_Clinicals_Status
+        data_type: varchar
+      - name: Hospital_Collector_Status
+        expr: Hospital_Collector_Status
+        data_type: varchar
+      - name: Hospital_Communicator_Status
+        expr: Hospital_Communicator_Status
+        data_type: varchar
+      - name: Telehealth_Status
+        expr: Telehealth_Status
+        data_type: varchar
+      - name: Authorization_Management_Service_Status
+        expr: Authorization_Management_Service_Status
+        data_type: varchar
+      - name: parent_account_id_full__c
+        expr: parent_account_id_full__c
+        data_type: varchar
+      - name: Customer_Parent_Account_Context_ID
+        expr: Customer_Parent_Account_Context_ID
+        data_type: varchar
+      - name: Focus
+        expr: Focus
+        data_type: varchar
+      - name: Client_Advocate
+        expr: Client_Advocate
+        data_type: varchar
+      - name: Billable_Providers
+        expr: Billable_Providers
+        data_type: number
+      - name: CSM_Response
+        expr: CSM_Response
+        data_type: varchar
+      - name: OptIn_Out
+        expr: OptIn_Out
+        data_type: varchar
+      - name: Recruitment_Method
+        expr: Recruitment_Method
+        data_type: varchar
+      - name: RUN_BY
+        expr: RUN_BY
+        data_type: varchar
+      - name: RUN_AT
+        expr: RUN_AT
+        data_type: timestamp_ntz
+      - name: feature_key
+        expr: feature_key
+        data_type: varchar
+      - name: interested
+        expr: interested
+        data_type: varchar
+
+  - name: previously_invited
+    table: corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_previously_invited_contexts
+    dimensions:
+      - name: ContextID
+        expr: ContextID
+        data_type: varchar
+      - name: feature_key
+        expr: feature_key
+        data_type: varchar
+
+relationships:
+  - name: interested_to_dimensions
+    left_table: interested_customers
+    right_table: customer_dimensions
+    relationship_columns:
+      - left_column: ContextID
+        right_column: ContextID
+    join_type: left_outer
+    relationship_type: many_to_one
+
+  - name: general_to_dimensions
+    left_table: general_population
+    right_table: customer_dimensions
+    relationship_columns:
+      - left_column: ContextID
+        right_column: ContextID
+    join_type: left_outer
+    relationship_type: many_to_one
+
+  - name: voc_to_dimensions
+    left_table: voc_customers
+    right_table: customer_dimensions
+    relationship_columns:
+      - left_column: ContextID
+        right_column: ContextID
+    join_type: left_outer
+    relationship_type: many_to_one
+
+  - name: invited_to_dimensions
+    left_table: previously_invited
+    right_table: customer_dimensions
+    relationship_columns:
+      - left_column: ContextID
+        right_column: ContextID
+    join_type: left_outer
+    relationship_type: many_to_one
+
+  - name: interested_to_invited
+    left_table: interested_customers
+    right_table: previously_invited
+    relationship_columns:
+      - left_column: ContextID
+        right_column: ContextID
+      - left_column: feature_key
+        right_column: feature_key
+    join_type: left_outer
+    relationship_type: many_to_one

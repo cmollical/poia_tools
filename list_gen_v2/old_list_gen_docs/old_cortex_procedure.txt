@@ -1,0 +1,652 @@
+CREATE OR REPLACE PROCEDURE CORPANALYTICS_BUSINESS_PROD.SCRATCHPAD_PRDPF.ALPHA_BETA_LIST_GENERATION("PROMPT_INPUT" VARCHAR(16777216))
+RETURNS VARIANT
+LANGUAGE JAVASCRIPT
+EXECUTE AS CALLER
+AS '
+try {
+    // 1) Capture the procedure parameter
+    var paramValue = arguments[0];
+    
+    // 2) Escape any single quotes in the prompt
+    var safePrompt = paramValue.replace(/''/g, "''''");
+
+    // --- STEP 1: Extract forced ContextIDs from the prompt ---
+    var forcedContextIDs = [];
+    
+    // Regex to match phrases like "include context 123" or "include contexts 123, 456"
+    var contextRegex = /include\\s+contexts?\\s+([0-9,\\s'']+)/i;
+    var contextMatch = paramValue.match(contextRegex);
+    if (contextMatch && contextMatch[1]) {
+        // Extract ContextIDs, remove quotes and whitespace
+        forcedContextIDs = contextMatch[1]
+            .replace(/''/g, "") 
+            .split(/,|\\s+/)
+            .map(id => id.trim())
+            .filter(id => id.length > 0);
+    }
+
+    // Normalize forcedContextIDs to uppercase for case-insensitive comparison
+    forcedContextIDs = forcedContextIDs.map(id => id.toUpperCase());
+
+    // --- STEP 2: Build the SQL command for SNOWFLAKE.CORTEX.COMPLETE ---
+    var sql_command =
+"SELECT SNOWFLAKE.CORTEX.COMPLETE(" +
+" ''claude-3-5-sonnet''," +
+" CONCAT(" +
+" ''I have a table with all of these fields (with descriptions of these fields in parentheses):" +
+"\\\\n,ContextID (this is the primary key and there should never be a filter on this column. it will always be text)" +
+"\\\\n,Account_Name (this is the name of the account and there should never be a filter on this column. It will always be text)" +
+"\\\\n,CSM_Tier (this is the size of an account and will only ever be Small Group, Group, Enterprise, or Hospital)" +
+"\\\\n,CS_Team (this is the type of cs team that supports the client. It will only ever be Small Group, Small Group - Specialist, Small Group - 1st Year Live, Group, Enterprise, Top 25 Client, Hospital, Standalone Coordinator)" +
+"\\\\n,Specialty (this is the type of provider and has multiple values such as Family Practice, Multi Specialty, Internal Medicine, etc... and will always be text)" +
+"\\\\n,Client_Relationship_Type (This will have multiple different text results such as Patient Safety, Emergency Messaging, etc...)" + 
+"\\\\n,Full_Name (this is the name of the user within a context and will always be text. there should never be a filter on this)" +
+"\\\\n,Email (this is the email of the user within a context and will always be text. there should never be a filter on this)" +
+"\\\\n,User_ID (this is the user id of the user within a context and will always be text. there should never be a filter on this)" +
+"\\\\n,CSM_Name (this is the name of the customer success manager supporting the context and there should never be a filter on this)" +
+"\\\\n,CSM_Email (this is the email of the customer success manager supporting the context and there should never be a filter on this)" +
+"\\\\n,NPS_Status (This column will only ever be Promoter, Detractor, or Passive)" +
+"\\\\n,Time_Zone (this is the time zone of the context and is formatted as Central Standard Time (CST))" +
+"\\\\n,Billing_State (this is the billing state of the context and will always be the two letter abbreviation)" +
+"\\\\n,Alpha_Beta_Status (this is the eligibility of a context to participate in alpha or beta tests and can be: Can Contact Client Directly, Contact Account Manager First, CSM Sends Alpha/Beta Invites)" +
+"\\\\n,Clinicals_Status (this is a context''''s status with our clinicals product and will be ''''Live'''' if they have it)" +
+"\\\\n,Collector_Status (this is a context''''s status with our collector product and will be ''''Live'''' if they have it)" +
+"\\\\n,Communicator_Status (this is a context''''s status with our communicator product and will be ''''Live'''' if they have it)" +
+"\\\\n,Hospital_Clinicals_Status (this is a context''''s status with our hospital clinicals product and will be ''''Live'''' if they have it. this is different than our standard clinicals product and should only be included if the prompt specifically indicates hospital clinicals)" +
+"\\\\n,Hospital_Collector_Status (this is a context''''s status with our hospital collector product and will be ''''Live'''' if they have it. this is different than our standard collector product and should only be included if the prompt specifically indicates hospital collector)" +
+"\\\\n,Hospital_Communicator_Status (this is a context''''s status with our hospital communicator product and will be ''''Live'''' if they have it. this is different than our standard communicator product and should only be included if the prompt specifically indicates hospital communicator)" +
+"\\\\n,Telehealth_Status (this is a context''''s status with our telehealth product and will be populated with ''''Live'''' if they have it)" +
+"\\\\n,Authorization_Management_Service_Status (this is a context''''s status with our authorization management service and will be populated with ''''Live'''' if they have it)" +
+"\\\\n,a.parent_account_id_full__c (this is the context''''s parent account and there should never be a filter on this)" +
+"\\\\n,Customer_Parent_Account_Context_ID (this is the context''''s parent account context id and there should never be a filter on this)" +
+"\\\\n,Focus (this is the focus of a context such as Direct Primary Care, FQHC, Urgent Care, Free Clinic)" +
+"\\\\n,Client_Advocate (there should never be a filter on this)" +
+"\\\\n,Billable_Providers (number of billable providers a context has and will always be a number)" +
+"\\\\n,CSM_Response (the response from the CSM on if we can solicit interest. there should never be a filter on this)" +
+"\\\\n,OptIn_Out (this is if a context has opted in or out of the alpha beta wave. there should never be a filter on this)" +
+"\\\\n,Recruitment_Method (this is how the invite list was generated and there should never be a filter on this)" +
+"\\\\n,feature_key (this is the feature that will be mentioned by the user and utilized to identify contexts who are in the interest funnel. this will always be a string and be formated as feature-xxxx. users may however have different fomats such as feature xxxx)" +
+"\\\\n,interested (this indicates if the row is for a feature that a context is interested in. This will always be a 1 or 0 1 for interested and 0 for no specific feature.)" +
+
+"\\\\n\\\\n| Based on these fields, take this plain english word prompt and turn it into a Snowflake SQL script that will produce the desired results. " +
+"Only give me the Snowflake query, do not give me any type of intro or anything other than a Snowflake SQL query. " +
+"There could be different capitalization in different columns so always use lower() in your where clauses and ensure to use lowercase letters. " +
+"Do not ever use column names in your select, only use * to ensure we are getting all columns. Only use the columns explicitly stated in the user prompt for filtering. " +
+"For example, if the user prompt says ''''live'''' in clinicals and nps status of passive the only valid filters are lower(clinicals_status) = ''''live'''' and lower(nps_status) = ''''passive''''. " +
+"No additional columns like time_zone, alpha_beta_status, csm_tier, etc. should appear in the where clause unless the user explicitly mentions them. " +
+"If the prompt does not mention time_zone, you MUST NOT include any filter on time_zone. " +
+"Do not infer or add any extra conditions based on column names or table schema. " +
+"Do not include any additional where conditions beyond those specified by the user. " +
+"Double-check your where clause to ensure it has ONLY the filters stated by the user prompt. " +
+"The table is named corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation and give it an alias of g. " +
+"Do not include any extra symbols such as ''''````''''." +
+"Ensure to pay close attention to the number of results that is requested. You must only filter on columns specifically mentioned in the prompt. " +
+"If the user prompt references only clinicals_status and nps_status, then do not add any other filters for other columns such as csm_tier, alpha_beta_status, or anything else. " +
+"The results should always be randomized. Ensure to always include all columns utilizing the *. " +
+"You should always have order by random() to ensure randomized results and limit x based on the number of requested contexts in the prompt. " +
+"Again, do not include any extra symbols. or words such as here is your sql or sql" +
+"If the word prompt is asking for a mix of results such as 10 contexts half that are group and half that are small group you can use a union. " +
+"For example:\\\\n( SELECT * FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation WHERE lower(csm_tier) = ''''group'''' ORDER BY random() LIMIT 5 ) UNION ALL ( SELECT * FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation WHERE lower(csm_tier) = ''''small group'''' ORDER BY random() LIMIT 5 ); " +
+"If the promp mentions beta coordinator or coordinator, ensure to use Client_Relationship_Type for that filter in the where clause. This field should only ever contain one of these: Clinical Performance Beta Coordinator, Patient Relations Beta Coordinator, Rev Cycle Beta Coordinator, Clinical Performance Beta Coordinator – Quality, Clinical Performance Beta Coordinator – Clinical Workflow, Rev Cycle Beta Coordinator - Billing, Rev Cycle Beta Coordinator – Front Office, Clinical Performance Beta Coordinator – Clinical Admin/IT, Patient Relations Beta Coordinator – Clinicals, Patient Relations Beta Coordinator – Collector, Hospital Beta Coordinator, Rev Cycle Beta Coordinator – Auth Management, Dental Beta Coordinator, Pop Health Beta Coordinator. If one of these are not exactly mentioned when referencing beta coordinator or coorinator try to pick one from the list that matches most closely. For example, if the prompt is please include 50 contexts that are clinical beta coordinators you would use Clinical Performance Beta Coordinator in your where clause for that filter." +
+"Do not ever include extra words such as have in the final output, go back when you are done and make sure you did not." +
+"if the prompt does not mention a feature, ensure to always use feature_key is null in your where clause. this is IMPORTANT. make sure to double check this." +
+"in the generated SQL, ensure to use a dash for any hyphenated phrases. For example: patient relations beta coordinator – clinicals is correct whereas patient relations beta coordinator - clinicals is incorrect." +
+
+"\\\\n\\\\nIf the user prompt includes a feature number MAKE SURE to INCLUDE contexts that have indicated interest via the interrest funnel, use a ROW_NUMBER() approach to union two subsets in Snowflake. In addition, ensure to use and lower(contextid) not in (select lower(contextid) from corpanalytics_business_prod.scratchpad_prdpf.cr_full_invite_list where lower(feature_key) = ''''feature-XXXX'''') in the where section which will exclude any contexts that have previously been invited, like so:\\\\n" +
+"SELECT sub.* exclude (rn)\\\\n" +
+"FROM (\\\\n" +
+"    SELECT t.*,\\\\n" +
+"           ROW_NUMBER() OVER (ORDER BY random()) AS rn\\\\n" +
+"    FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation t\\\\n" +
+"    WHERE lower(feature_key) = ''''feature-XXXX''''\\\\n" +
+"          AND lower(clinicals_status) = ''''live''''\\\\n" +
+"          and lower(contextid) not in (select lower(contextid) from corpanalytics_business_prod.scratchpad_prdpf.cr_full_invite_list where lower(feature_key) = ''''feature-XXXX'''')\\\\n" +
+") sub\\\\n" +
+"WHERE rn <= <X>\\\\n" +
+"\\\\nUNION ALL\\\\n" +
+"SELECT filler.* exclude (rn2)\\\\n" +
+"FROM (\\\\n" +
+"    SELECT t.*,\\\\n" +
+"           ROW_NUMBER() OVER (ORDER BY random()) AS rn2\\\\n" +
+"    FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation t\\\\n" +
+"    WHERE (lower(feature_key) NOT IN (''''feature-XXXX'''') OR feature_key IS NULL)\\\\n" +
+"          AND lower(clinicals_status) = ''''live''''\\\\n" +
+"          and lower(contextid) not in (select lower(contextid) from corpanalytics_business_prod.scratchpad_prdpf.cr_full_invite_list where lower(feature_key) = ''''feature-XXXX'''')\\\\n" +
+") filler\\\\n" +
+"WHERE rn2 <= (<X> - (\\\\n" +
+"    SELECT COUNT(*)\\\\n" +
+"    FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation\\\\n" +
+"    WHERE lower(feature_key) = ''''feature-XXXX''''\\\\n" +
+"          AND lower(clinicals_status) = ''''live''''\\\\n" +
+"          and lower(contextid) not in (select lower(contextid) from corpanalytics_business_prod.scratchpad_prdpf.cr_full_invite_list where lower(feature_key) = ''''feature-XXXX'''')\\\\n" +
+"))\\\\n;" +
+"\\\\nReplace <X> with the total requested, and ''''feature-XXXX'''' with the user-specified feature_key. Always ensure row-number columns are excluded by using `exclude (rn)` and `exclude (rn2)` in the final SELECT." +
+
+
+"\\\\n\\\\nIf a user requests a ''''representative sample'''' or ''''proportional sample'''' of X rows based on a grouping column (like csm_tier or time_zone), construct a dynamic query that:" +
+"\\\\n1) Filters rows based on any specified conditions." +
+"\\\\n2) Groups and counts rows by that column." +
+"\\\\n3) Computes each category''''s fraction of the total (cat_count / grand_total)." +
+"\\\\n4) Multiplies that fraction by X to derive how many rows to pick from each category (e.g., ROUND())." +
+"\\\\n5) Assigns a random row number within each group using ROW_NUMBER() OVER (PARTITION BY grouping_column ORDER BY RANDOM())." +
+"\\\\n6) Uses the GROUP BY ALL clause to include all necessary columns." +
+"\\\\n7) Uses the QUALIFY clause to limit the rows per group based on the calculated sample size." +
+"\\\\nEnsure that the grouping column is **only** used for grouping and counting, and **not** for filtering unless explicitly specified by the user." +
+"\\\\ndoes not have anything other than the query, no language such as sql or here is your sql" +
+"\\\\nAn example approach:" +
+"\\\\nSELECT *" +
+"\\\\nFROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation t" +
+"\\\\nWHERE lower(t.clinicals_status) = ''''live''''" +
+"\\\\nGROUP BY ALL" +
+"\\\\nQUALIFY ROW_NUMBER() OVER (PARTITION BY t.csm_tier ORDER BY RANDOM()) <= " +
+"\\\\n    ROUND((" +
+"\\\\n        COUNT(*) OVER (PARTITION BY t.csm_tier) * 50.0" +
+"\\\\n    ) / " +
+"\\\\n    SUM(COUNT(*)) OVER ()" +
+"\\\\n    )" +
+";" +
+
+// INSTRUCTIONS FOR FORCED CONTEXTS (ONE ROW EACH)
+"\\\\n\\\\n| IMPORTANT: If the user prompt includes forced ContextIDs (e.g. ''''123'''', ''''456'''', ''''789''''), then build a union query that includes: " +
+"\\\\n(1) A random subset excluding those forced IDs with limit = (requested total - number of forced IDs). " +
+"\\\\n(2) A sub-select for forced contexts that uses ROW_NUMBER() OVER (PARTITION BY contextid ORDER BY random()) = 1 to ensure only one row per contextid, " +
+"\\\\n(3) Do not provide any text other than the sql query such as here is your query or sql or i have." +
+"   but also excludes the rn column in the final SELECT to avoid a mismatch. " +
+"\\\\nFor example: " +
+"( SELECT * " +
+"  FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation " +
+"  WHERE lower(clinicals_status) = ''''live'''' " +
+"    AND contextid NOT IN (''''123'''',''''456'''',''''789'''') " +
+"  ORDER BY random() " +
+"  LIMIT 47 ) " +
+"UNION ALL " +
+"( SELECT *  " +
+"  FROM ( " +
+"    SELECT a.* " +
+"    FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation a " +
+"    WHERE a.contextid IN (''''123'''',''''456'''',''''789'''') " +
+"    and lower(clinicals_status) = ''''live'''' " +
+"    qualify ROW_NUMBER() OVER (PARTITION BY a.contextid ORDER BY random()) = 1 " +
+"  ) forced " +
+");" +
+
+// TRAINING EXAMPLE
+"\\\\n\\\\n/* EXAMPLE PROMPT: give me 20 contexts that are live in clinicals and are passive nps. plase only give the Patient Relations Beta Coordinator. this should be representitive of the population. please include context 21036" +
+"\\\\n| Here is the exact Snowflake SQL query that should be produced (note the representative sample in Branch #1, forced context in Branch #2):" +
+"\\\\n(" +
+"\\\\n    SELECT *" +
+"\\\\n    FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation t" +
+"\\\\n    WHERE" +
+"\\\\n        lower(t.clinicals_status) = ''''live''''" +
+"\\\\n        AND lower(t.nps_status) = ''''passive''''" +
+"\\\\n        AND lower(t.client_relationship_type) = ''''patient relations beta coordinator''''" +
+"\\\\n        AND t.contextid NOT IN (''''21036'''')" +
+"\\\\n    GROUP BY ALL" +
+"\\\\n    QUALIFY" +
+"\\\\n        ROW_NUMBER() OVER (PARTITION BY t.csm_tier ORDER BY RANDOM()) <= " +
+"\\\\n        ROUND((" +
+"\\\\n            COUNT(*) OVER (PARTITION BY t.csm_tier) * 19.0" +
+"\\\\n        ) /" +
+"\\\\n        SUM(COUNT(*)) OVER ()" +
+"\\\\n        )" +
+"\\\\n)" +
+"\\\\nUNION ALL" +
+"\\\\n(" +
+"\\\\n    SELECT *" +
+"\\\\n    FROM" +
+"\\\\n    (" +
+"\\\\n        SELECT a.*" +
+"\\\\n        FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation a" +
+"\\\\n        WHERE" +
+"\\\\n            a.contextid IN (''''21036'''')" +
+"\\\\n            AND lower(a.clinicals_status) = ''''live''''" +
+"\\\\n            AND lower(a.nps_status) = ''''passive''''" +
+"\\\\n            AND lower(a.client_relationship_type) = ''''patient relations beta coordinator''''" +
+"\\\\n        QUALIFY" +
+"\\\\n            ROW_NUMBER() OVER (PARTITION BY a.contextid ORDER BY RANDOM()) = 1" +
+"\\\\n    ) forced" +
+"\\\\n);" +
+"\\\\n| This illustrates how to handle a forced context (21036) plus a representative sample of 19 for the rest, ensuring exactly 20 contexts in total. */" +
+
+"\\\\n There may be scenarios where the prompt asks you to exclude certain context ids or accounts. If it does, ensure to use not in and do not add them back in utilizing a union. For example, give me fifty contexts and exclude contexts 123, 456, 789..." +
+
+"\\\\n Here is a more complex example if the user prompt is: for feature 4327 give me 500 contexts that have clinicals. use the clinical performance beta coordinator and make sure to include contexts 7316, 20370" +
+"SELECT sub.* exclude (rn)\\n" +
+"FROM (\\n" +
+"  SELECT\\n" +
+"      t.*, \\n" +
+"      ROW_NUMBER() OVER (ORDER BY random()) AS rn\\n" +
+"  FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation t\\n" +
+"  WHERE lower(feature_key) = ''''feature-4327''''\\n" +
+"    AND lower(clinicals_status) = ''''live''''\\n" +
+"    AND lower(client_relationship_type) = ''''clinical performance beta coordinator''''\\n" +
+"    AND lower(contextid) NOT IN (''''7316'''', ''''20370'''')\\n" +
+"    and lower(contextid) not in (select lower(contextid) from corpanalytics_business_prod.scratchpad_prdpf.cr_full_invite_list where lower(feature_key) = ''''feature-4327'''')\\n" +
+") sub\\n" +
+"WHERE rn <= 500\\n" +
+"\\n" +
+"UNION ALL\\n" +
+"\\n" +
+"SELECT filler.* exclude (rn2)\\n" +
+"FROM (\\n" +
+"  SELECT\\n" +
+"      t.*, \\n" +
+"      ROW_NUMBER() OVER (ORDER BY random()) AS rn2\\n" +
+"  FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation t\\n" +
+"  WHERE feature_key IS NULL\\n" +
+"    AND lower(clinicals_status) = ''''live''''\\n" +
+"    AND lower(client_relationship_type) = ''''clinical performance beta coordinator''''\\n" +
+"    AND lower(contextid) NOT IN (''''7316'''', ''''20370'''')\\n" +
+"    and lower(contextid) not in (select lower(contextid) from corpanalytics_business_prod.scratchpad_prdpf.cr_full_invite_list where lower(feature_key) = ''''feature-4327'''')\\n" +
+") filler\\n" +
+"WHERE rn2 <= (\\n" +
+"  498 -- user wants 500 total, minus 2 forced contexts\\n" +
+"  - (\\n" +
+"    SELECT COUNT(*)\\n" +
+"    FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation\\n" +
+"    WHERE lower(feature_key) = ''''feature-4327''''\\n" +
+"      AND lower(clinicals_status) = ''''live''''\\n" +
+"      AND lower(client_relationship_type) = ''''clinical performance beta coordinator''''\\n" +
+"      AND lower(contextid) NOT IN (''''7316'''', ''''20370'''')\\n" +
+"    and lower(contextid) not in (select lower(contextid) from corpanalytics_business_prod.scratchpad_prdpf.cr_full_invite_list where lower(feature_key) = ''''feature-4327'''')\\n" +
+"  )\\n" +
+")\\n" +
+"UNION ALL\\n" +
+"(\\n" +
+"  SELECT\\n" +
+"      *\\n" +
+"  FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation t\\n" +
+"  WHERE lower(clinicals_status) = ''''live''''\\n" +
+"    AND feature_key IS NULL\\n" +
+"    AND lower(client_relationship_type) = ''''clinical performance beta coordinator''''\\n" +
+"    AND lower(contextid) IN (''''20370'''', ''''7316'''')\\n" +
+"    and lower(contextid) not in (select lower(contextid) from corpanalytics_business_prod.scratchpad_prdpf.cr_full_invite_list where lower(feature_key) = ''''feature-4327'''')\\n" +
+"  QUALIFY ROW_NUMBER() OVER (PARTITION BY contextid ORDER BY feature_key) = 1\\n" +
+");" +
+
+"\\\\n Here is an even more complex example if the user prompt is: for feature 4327 give me 500 contexts that have clinicals and are a mix of group and small group. use the clinical performance beta coordinator and make sure to include contexts 7316, 20370. this should be representative of the population based on csm tier" +
+
+"\\\\n Instructions:   Sub-subselect #1: Row-level data + row_number partition, Sub-subselect #2: Count each csm_tier, with the SAME filters, Sub-subselect #3: Compute the GRAND total across all csm_tiers, Finally, we pick only as many rows as the representative fraction. Make sure to use feature_number is null in the filler subqueries to ensure we do not pull duplicates. Here is the expected output: " +
+
+"(" +
+"  SELECT sub.* EXCLUDE (rn)\\n" +
+"  FROM (\\n" +
+"    SELECT\\n" +
+"        t.*, \\n" +
+"        ROW_NUMBER() OVER (ORDER BY RANDOM()) AS rn\\n" +
+"    FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation t\\n" +
+"    WHERE lower(feature_key) = ''''feature-4327''''\\n" +
+"      AND lower(clinicals_status) = ''''live''''\\n" +
+"      AND lower(csm_tier) in (''''group'''', ''''small group'''')\\n" +
+"      AND lower(client_relationship_type) = ''''clinical performance beta coordinator''''\\n" +
+"      AND lower(contextid) NOT IN (''''7316'''',''''20370'''')\\n" +
+"    and lower(contextid) not in (select lower(contextid) from corpanalytics_business_prod.scratchpad_prdpf.cr_full_invite_list where lower(feature_key) = ''''feature-4327'''')\\n" +
+"  ) sub\\n" +
+"  WHERE rn <= 498\\n" +
+")\\n" +
+"UNION ALL\\n" +
+"(\\n" +
+"  SELECT final.*\\n" +
+"         EXCLUDE(rn2, cat_count, grand_total)\\n" +
+"  FROM\\n" +
+"  (\\n" +
+//"    /*-------------------------------------------------------\\n" +
+//"      Sub-subselect #1: Row-level data + row_number partition\\n" +
+//"      -------------------------------------------------------*/\\n" +
+"    SELECT\\n" +
+"      s1.*,\\n" +
+"      s2.cat_count,\\n" +
+"      s3.grand_total\\n" +
+"    FROM\\n" +
+"    (\\n" +
+"      /* PART A: row-level data, plus row_number in each csm_tier */\\n" +
+"      SELECT\\n" +
+"        t.*,\\n" +
+"        ROW_NUMBER() OVER (PARTITION BY t.csm_tier ORDER BY RANDOM()) AS rn2\\n" +
+"      FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation t\\n" +
+"      WHERE\\n" +
+"        feature_key IS NULL\\n" +
+"        AND lower(clinicals_status) = ''''live''''\\n" +
+"      AND lower(csm_tier) in (''''group'''', ''''small group'''')\\n" +
+"        AND lower(client_relationship_type) = ''''clinical performance beta coordinator''''\\n" +
+"        AND lower(contextid) NOT IN (''''7316'''',''''20370'''')\\n" +
+"    and lower(contextid) not in (select lower(contextid) from corpanalytics_business_prod.scratchpad_prdpf.cr_full_invite_list where lower(feature_key) = ''''feature-4327'''')\\n" +
+"    ) s1\\n" +
+"\\n" +
+//"    /*-------------------------------------------------------------------\\n" +
+//"      Sub-subselect #2: Count each csm_tier, with the SAME filters\\n" +
+//"      -------------------------------------------------------------------*/\\n" +
+"    JOIN\\n" +
+"    (\\n" +
+"      SELECT\\n" +
+"        t2.csm_tier,\\n" +
+"        COUNT(*) AS cat_count\\n" +
+"      FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation t2\\n" +
+"      WHERE\\n" +
+"        feature_key IS NULL\\n" +
+"        AND lower(clinicals_status) = ''''live''''\\n" +
+"      AND lower(csm_tier) in (''''group'''', ''''small group'''')\\n" +
+"        AND lower(client_relationship_type) = ''''clinical performance beta coordinator''''\\n" +
+"        AND lower(contextid) NOT IN (''''7316'''',''''20370'''')\\n" +
+"    and lower(contextid) not in (select lower(contextid) from corpanalytics_business_prod.scratchpad_prdpf.cr_full_invite_list where lower(feature_key) = ''''feature-4327'''')\\n" +
+"      GROUP BY t2.csm_tier\\n" +
+"    ) s2\\n" +
+"      ON s1.csm_tier = s2.csm_tier\\n" +
+"\\n" +
+//"    /*-------------------------------------------------------------------\\n" +
+//"      Sub-subselect #3: Compute the GRAND total across all csm_tiers\\n" +
+//"      -------------------------------------------------------------------*/\\n" +
+"    CROSS JOIN\\n" +
+"    (\\n" +
+"      SELECT SUM(sub.cat_count) AS grand_total\\n" +
+"      FROM\\n" +
+"      (\\n" +
+"        SELECT\\n" +
+"          t3.csm_tier,\\n" +
+"          COUNT(*) AS cat_count\\n" +
+"        FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation t3\\n" +
+"        WHERE\\n" +
+"          feature_key IS NULL\\n" +
+"          AND lower(clinicals_status) = ''''live''''\\n" +
+"      AND lower(csm_tier) in (''''group'''', ''''small group'''')\\n" +
+"          AND lower(client_relationship_type) = ''''clinical performance beta coordinator''''\\n" +
+"          AND lower(contextid) NOT IN (''''7316'''',''''20370'''')\\n" +
+"    and lower(contextid) not in (select lower(contextid) from corpanalytics_business_prod.scratchpad_prdpf.cr_full_invite_list where lower(feature_key) = ''''feature-4327'''')\\n" +
+"        GROUP BY t3.csm_tier\\n" +
+"      ) sub\\n" +
+"    ) s3\\n" +
+"  ) final\\n" +
+"\\n" +
+//"  /*-----------------------------------------------------------------------\\n" +
+//"    Finally, we pick only as many rows as the representative fraction\\n" +
+//"    -----------------------------------------------------------------------*/\\n" +
+"  WHERE final.rn2 <= ROUND(\\n" +
+"    ( final.cat_count * (\\n" +
+"        498\\n" +
+"        - (\\n" +
+"          SELECT COUNT(*)\\n" +
+"          FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation\\n" +
+"          WHERE lower(feature_key) = ''''feature-4327''''\\n" +
+"            AND lower(clinicals_status) = ''''live''''\\n" +
+"      AND lower(csm_tier) in (''''group'''', ''''small group'''')\\n" +
+"            AND lower(client_relationship_type) = ''''clinical performance beta coordinator''''\\n" +
+"            AND lower(contextid) NOT IN (''''7316'''',''''20370'''')\\n" +
+"    and lower(contextid) not in (select lower(contextid) from corpanalytics_business_prod.scratchpad_prdpf.cr_full_invite_list where lower(feature_key) = ''''feature-4327'''')\\n" +
+"        )\\n" +
+"      )\\n" +
+"    ) / final.grand_total\\n" +
+"  )\\n" +
+")\\n" +
+"\\n" +
+"UNION ALL\\n" +
+"(\\n" +
+"  SELECT forced.* EXCLUDE (rn3)\\n" +
+"  FROM (\\n" +
+"    SELECT\\n" +
+"        t.*,\\n" +
+"        ROW_NUMBER() OVER (PARTITION BY t.contextid ORDER BY t.feature_key) AS rn3\\n" +
+"    FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation t\\n" +
+"    WHERE lower(clinicals_status) = ''''live''''\\n" +
+"      AND feature_key IS NULL\\n" +
+"      AND lower(csm_tier) in (''''group'''', ''''small group'''')\\n" +
+"      AND lower(client_relationship_type) = ''''clinical performance beta coordinator''''\\n" +
+"      AND lower(contextid) IN (''''7316'''',''''20370'''')\\n" +
+"    and lower(contextid) not in (select lower(contextid) from corpanalytics_business_prod.scratchpad_prdpf.cr_full_invite_list where lower(feature_key) = ''''feature-4327'''')\\n" +
+"  ) forced\\n" +
+"  WHERE rn3 = 1\\n" +
+");"+
+
+"For any of the above examples, if the prompt does not mention a feature number, ensure to use feature_key is null in your where clauses. " +
+"For example, if the prompt asks for a 10 contexts that are half group and small group but does not include a specific feature_key your query should be: " +
+"(SELECT * FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation WHERE lower(csm_tier) = ''''group'''' and feature_key is null ORDER BY random() LIMIT 5 ) UNION ALL ( SELECT * FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation WHERE lower(csm_tier) = ''''small group''''  and feature_key is null ORDER BY random() LIMIT 5 ); " +
+
+"now before you provide the result go back and check your where filters to ensure you are filtering appropriately..." +
+
+"\\\\n\\\\nHere is the word prompt: ''," +
+" ''" + safePrompt + "''" +
+")) AS COMPLETION;";
+
+     // 3) Execute statement that calls SNOWFLAKE.CORTEX.COMPLETE
+    var statement1 = snowflake.createStatement({ sqlText: sql_command });
+    var result = statement1.execute();
+
+    // 4) Move the cursor
+    if (!result.next()) {
+        return { "error": "No row returned from SNOWFLAKE.CORTEX.COMPLETE call." };
+    }
+
+    // 5) Get the COMPLETION column
+    var generated_sql = result.getColumnValue("COMPLETION");
+    if (!generated_sql) {
+        return { "error": "No COMPLETION was returned by SNOWFLAKE.CORTEX.COMPLETE." };
+    }
+
+    // Clean up
+    generated_sql = generated_sql
+        .replace(/```/g, "")
+        .replace(/\\\\n/g, " ")
+        .replace(/\\n/g, " ")
+        .trim();
+
+    // --- STEP 6: Extract filters
+    var filterRegex = new RegExp([
+      // single-value eq: e.g. lower(csm_tier) = ''group''
+      "lower\\\\(\\\\w+\\\\)\\\\s*=\\\\s*''[^'']+''",
+      // multi-value in: e.g. lower(csm_tier) in (''group'',''small group'')
+      "lower\\\\(\\\\w+\\\\)\\\\s+in\\\\s*\\\\(\\\\s*''[^'']+''(?:\\\\s*,\\\\s*''[^'']+''\\\\s*)*\\\\)"
+    ].join("|"), "gi");
+
+    var applied_filters = new Set();
+    var match;
+    while ((match = filterRegex.exec(generated_sql)) !== null) {
+        applied_filters.add(match[0].trim());
+    }
+
+    // Exclude filters referencing contextid or feature_key
+    // e.g. "lower(contextid) in (...)" or "lower(feature_key) = ''xxx''"
+    applied_filters = Array.from(applied_filters).filter(f => {
+        if (f.includes("lower(contextid)")) return false;
+        if (f.includes("lower(feature_key)")) return false;
+        if (f.includes("lower(client_relationship_type)")) return false;
+        return true;
+    });
+    // optional: convert back to Set
+    applied_filters = new Set(applied_filters);
+
+    // 7) Capture RUN_BY, RUN_AT
+    var userStmt = snowflake.createStatement({ sqlText: "SELECT CURRENT_USER()" });
+    var userResult = userStmt.execute();
+    var runBy = "UNKNOWN_USER";
+    if (userResult.next()) {
+        runBy = userResult.getColumnValue(1);
+    }
+    var runAt = new Date().toISOString();
+
+    // 8) Execute the LLM-generated SQL
+    var statement2 = snowflake.createStatement({ sqlText: generated_sql });
+    var query_result = statement2.execute();
+
+    // 9) Collect rows from the LLM query
+    var outputRows = [];
+    while (query_result.next()) {
+        var rowObj = {};
+        for (var i = 1; i <= query_result.getColumnCount(); i++) {
+            var colName = query_result.getColumnName(i);
+            var colValue = query_result.getColumnValue(i);
+            // skip RUN_BY / RUN_AT
+            if (colName === "RUN_BY" || colName === "RUN_AT") {
+                continue;
+            }
+            rowObj[colName] = colValue;
+        }
+        outputRows.push(rowObj);
+    }
+
+    // Insert them into alpha_beta_list_generation_results
+    for (var r = 0; r < outputRows.length; r++) {
+        var rowObj2 = outputRows[r];
+        var colNames = [];
+        var colVals = [];
+        for (var key in rowObj2) {
+            var quotedName = ''"'' + key.replace(/"/g, ''""'') + ''"'';
+            colNames.push(quotedName);
+            if (rowObj2[key] === null) {
+                colVals.push("NULL");
+            } else {
+                var safeVal = String(rowObj2[key]).replace(/''/g, "''''");
+                colVals.push("''" + safeVal + "''");
+            }
+        }
+        // Add run_by, run_at
+        colNames.push(''"RUN_BY"'');
+        colVals.push("''" + runBy.replace(/''/g, "''''") + "''");
+        colNames.push(''"RUN_AT"'');
+        colVals.push("''" + runAt + "''");
+
+        var insert_sql = 
+          `INSERT INTO corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation_results
+          (${colNames.join(",")})
+          VALUES
+          (${colVals.join(",")})
+          ;`;
+        snowflake.createStatement({ sqlText: insert_sql }).execute();
+    }
+
+    // 10) Identify forced contexts missing from results
+    var resultContextIDs = outputRows.map(r => {
+        // prefer "CONTEXTID" or "ContextID" or "contextid"? 
+        // We''ll check the keys. For safety:
+        let rowKeys = Object.keys(r).map(x => x.toUpperCase());
+        let cVal = null;
+        if (rowKeys.includes("CONTEXTID")) {
+            cVal = r["CONTEXTID"] || r["ContextID"] || r["contextid"];
+        } else if (rowKeys.includes("CONTEXT_ID")) {
+            cVal = r["CONTEXT_ID"] || r["context_id"];
+        } else if (r["ContextID"]) {
+            cVal = r["ContextID"];
+        }
+        if (cVal != null) return String(cVal).toUpperCase();
+        return null;
+    }).filter(x => x != null);
+
+    var excludedContextIDs = forcedContextIDs.filter(id => !resultContextIDs.includes(id));
+    if (excludedContextIDs.length === 0) {
+        return {
+            "generated_sql": generated_sql,
+            "excluded_contexts": []
+        };
+    }
+
+    // 11) For those forced contexts missing from results, fetch exactly 1 row each
+    // so we avoid duplicates
+    var forcedSql = `
+        WITH forced AS (
+          SELECT
+             t.*,
+             ROW_NUMBER() OVER (PARTITION BY UPPER(t.ContextID) ORDER BY random()) AS rn
+          FROM corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_list_generation t
+          WHERE UPPER(t.ContextID) IN (${excludedContextIDs.map(x => `''${x}''`).join(",")})
+        )
+        SELECT *
+        FROM forced
+        WHERE rn = 1
+    `;
+    var forcedStmt = snowflake.createStatement({ sqlText: forcedSql });
+    var forcedRes = forcedStmt.execute();
+
+    var forcedRows = [];
+    while (forcedRes.next()) {
+        var rowF = {};
+        for (var j = 1; j <= forcedRes.getColumnCount(); j++) {
+            var fColName = forcedRes.getColumnName(j);
+            var fVal = forcedRes.getColumnValue(j);
+            rowF[fColName] = fVal;
+        }
+        forcedRows.push(rowF);
+    }
+
+    // Step 12) Evaluate each forced row against the user-level filters
+    function evaluateFilter(filter, row) {
+        // single-value eq
+        var eqRegex = /lower\\((\\w+)\\)\\s*=\\s*''([^'']+)''/i;
+        // multi-value in
+        var inRegex = /lower\\((\\w+)\\)\\s+in\\s*\\(\\s*''[^'']+''(?:\\s*,\\s*''[^'']+''\\s*)*\\)/i;
+
+        let eqMatch = filter.match(eqRegex);
+        if (eqMatch) {
+            let column = eqMatch[1];
+            let value = eqMatch[2].toLowerCase();
+            let rowVal = getContextValue(row, column);
+            if (rowVal == null) return false;
+            return rowVal.toLowerCase() === value;
+        }
+
+        let inMatch = filter.match(inRegex);
+        if (inMatch) {
+            let column2 = inMatch[1];
+            let rowVal2 = getContextValue(row, column2);
+            if (rowVal2 == null) return false;
+            // gather the quoted values
+            let valsIn = filter.match(/''[^'']+''/g) || [];
+            let listVals = valsIn.map(v => v.replace(/''/g, "").trim().toLowerCase());
+            return listVals.includes(rowVal2.toLowerCase());
+        }
+        return false; 
+    }
+
+    // Helper to safely get row column ignoring case. E.g. row might have "ContextID" or "CONTEXTID" keys
+    function getContextValue(row, colName) {
+        // row might have colName in different case forms
+        let keys = Object.keys(row);
+        for (let k of keys) {
+            if (k.toUpperCase() === colName.toUpperCase()) {
+                if (row[k] != null) return String(row[k]);
+                else return null;
+            }
+        }
+        return null;
+    }
+
+    let userFilters = Array.from(applied_filters);
+    let exclusionDetails = [];
+
+    for (let forcedRow of forcedRows) {
+        // figure out the "ContextID" from forcedRow
+        let forcedKeys = Object.keys(forcedRow).map(x => x.toUpperCase());
+        let cIDVal = null;
+        if (forcedKeys.includes("CONTEXTID")) {
+            cIDVal = forcedRow["CONTEXTID"] || forcedRow["ContextID"] || forcedRow["contextid"];
+        } else if (forcedKeys.includes("CONTEXT_ID")) {
+            cIDVal = forcedRow["CONTEXT_ID"] || forcedRow["context_id"];
+        } else if (forcedRow["ContextID"]) {
+            cIDVal = forcedRow["ContextID"];
+        }
+
+        let finalCtxtID = cIDVal ? String(cIDVal) : "UNKNOWN_CONTEXT";
+
+        // check each user-level filter
+        let failedFilters = [];
+        for (let flt of userFilters) {
+            let passes = evaluateFilter(flt, forcedRow);
+            if (!passes) {
+                failedFilters.push(flt);
+            }
+        }
+        exclusionDetails.push({
+            "ContextID": finalCtxtID,
+            "Failed_Filters": failedFilters
+        });
+    }
+
+    return {
+        "generated_sql": generated_sql,
+        "excluded_contexts": exclusionDetails
+    };
+
+} catch (err) {
+    return { 
+        "error": "Failed to execute SQL: " + err.message, 
+        "generated_sql": generated_sql 
+    };
+}
+';

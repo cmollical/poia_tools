@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="4" time="0.850" timestamp="2025-07-31T11:26:30.440093-04:00" hostname="ATH-304289"><testcase classname="backend.tests.test_confluence_service" name="test_init_with_valid_credentials" time="0.145"><failure message="AttributeError: 'ConfluenceService' object has no attribute 'base_url'">mock_environment = &lt;MagicMock name='os' id='3054499644480'&gt;
+
+    def test_init_with_valid_credentials(mock_environment):
+        """Test initializing ConfluenceService with valid credentials."""
+        # Act
+        service = ConfluenceService()
+    
+        # Assert
+        assert service is not None
+&gt;       assert service.base_url == 'https://test.confluence.com'
+               ^^^^^^^^^^^^^^^^
+E       AttributeError: 'ConfluenceService' object has no attribute 'base_url'
+
+tests\test_confluence_service.py:49: AttributeError</failure></testcase><testcase classname="backend.tests.test_confluence_service" name="test_create_page_basic" time="0.005"><failure message="ValueError: Failed to create page: HTTP &lt;MagicMock name='requests.Session().post().status_code' id='3054499644480'&gt;">mock_requests = &lt;MagicMock name='requests' id='3054499653216'&gt;
+mock_environment = &lt;MagicMock name='os' id='3054499654896'&gt;
+
+    def test_create_page_basic(mock_requests, mock_environment):
+        """Test creating a basic Confluence page."""
+        # Arrange
+        service = ConfluenceService()
+        title = "Test Page"
+        content = "&lt;p&gt;Test content&lt;/p&gt;"
+        space_key = "TEST"
+    
+        # Act
+&gt;       result = service.create_page(title, content, space_key)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_confluence_service.py:62: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;app.services.confluence_service.ConfluenceService object at 0x000002C72E3FF4D0&gt;
+title = 'Test Page', content = '&lt;p&gt;Test content&lt;/p&gt;', space_key = 'TEST'
+parent_id = None
+
+    def create_page(self, title: str, content: str, space_key: str, parent_id: Optional[str] = None) -&gt; Dict[str, Any]:
+        """
+        Create a new Confluence page.
+    
+        Args:
+            title: Title of the page
+            content: HTML content of the page
+            space_key: Space key where the page will be created
+            parent_id: Optional parent page ID
+    
+        Returns:
+            Dictionary with page ID and URL
+        """
+        try:
+            if not self.confluence_token:
+                raise ValueError("Confluence token not configured")
+    
+            # Prepare page data
+            page_data = {
+                "type": "page",
+                "title": title,
+                "space": {"key": space_key},
+                "body": {
+                    "storage": {
+                        "value": content,
+                        "representation": "storage"
+                    }
+                }
+            }
+    
+            # Add parent page reference if provided
+            if parent_id:
+                page_data["ancestors"] = [{"id": parent_id}]
+    
+            # Create the page
+            response = self.session.post(
+                f"{self.api_base_url}/content",
+                json=page_data
+            )
+    
+            if response.status_code not in (200, 201):
+                logger.error(f"Error creating page: HTTP {response.status_code}: {response.text}")
+&gt;               raise ValueError(f"Failed to create page: HTTP {response.status_code}")
+E               ValueError: Failed to create page: HTTP &lt;MagicMock name='requests.Session().post().status_code' id='3054499644480'&gt;
+
+app\services\confluence_service.py:272: ValueError</failure></testcase><testcase classname="backend.tests.test_confluence_service" name="test_create_page_with_parent" time="0.005"><failure message="ValueError: Failed to create page: HTTP &lt;MagicMock name='requests.Session().post().status_code' id='3054498973744'&gt;">mock_requests = &lt;MagicMock name='requests' id='3054499646832'&gt;
+mock_environment = &lt;MagicMock name='os' id='3054499658256'&gt;
+
+    def test_create_page_with_parent(mock_requests, mock_environment):
+        """Test creating a Confluence page with a parent page."""
+        # Arrange
+        service = ConfluenceService()
+        title = "Child Page"
+        content = "&lt;p&gt;Child content&lt;/p&gt;"
+        space_key = "TEST"
+        parent_id = "PARENT-123"
+    
+        # Act
+&gt;       result = service.create_page(title, content, space_key, parent_id)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_confluence_service.py:89: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;app.services.confluence_service.ConfluenceService object at 0x000002C72E3FEAD0&gt;
+title = 'Child Page', content = '&lt;p&gt;Child content&lt;/p&gt;', space_key = 'TEST'
+parent_id = 'PARENT-123'
+
+    def create_page(self, title: str, content: str, space_key: str, parent_id: Optional[str] = None) -&gt; Dict[str, Any]:
+        """
+        Create a new Confluence page.
+    
+        Args:
+            title: Title of the page
+            content: HTML content of the page
+            space_key: Space key where the page will be created
+            parent_id: Optional parent page ID
+    
+        Returns:
+            Dictionary with page ID and URL
+        """
+        try:
+            if not self.confluence_token:
+                raise ValueError("Confluence token not configured")
+    
+            # Prepare page data
+            page_data = {
+                "type": "page",
+                "title": title,
+                "space": {"key": space_key},
+                "body": {
+                    "storage": {
+                        "value": content,
+                        "representation": "storage"
+                    }
+                }
+            }
+    
+            # Add parent page reference if provided
+            if parent_id:
+                page_data["ancestors"] = [{"id": parent_id}]
+    
+            # Create the page
+            response = self.session.post(
+                f"{self.api_base_url}/content",
+                json=page_data
+            )
+    
+            if response.status_code not in (200, 201):
+                logger.error(f"Error creating page: HTTP {response.status_code}: {response.text}")
+&gt;               raise ValueError(f"Failed to create page: HTTP {response.status_code}")
+E               ValueError: Failed to create page: HTTP &lt;MagicMock name='requests.Session().post().status_code' id='3054498973744'&gt;
+
+app\services\confluence_service.py:272: ValueError</failure></testcase><testcase classname="backend.tests.test_confluence_service" name="test_create_page_with_author_info" time="0.005"><failure message="ValueError: Failed to create page: HTTP &lt;MagicMock name='requests.Session().post().status_code' id='3054498980464'&gt;">mock_requests = &lt;MagicMock name='requests' id='3054498975424'&gt;
+mock_environment = &lt;MagicMock name='os' id='3054498977104'&gt;
+
+    def test_create_page_with_author_info(mock_requests, mock_environment):
+        """Test creating a Confluence page with author information."""
+        # Arrange
+        service = ConfluenceService()
+        title = "Authored Page"
+        content = "&lt;p&gt;&lt;strong&gt;Author:&lt;/strong&gt; John Doe&lt;/p&gt;\n&lt;p&gt;Page content with author&lt;/p&gt;"
+        space_key = "TEST"
+    
+        # Act
+&gt;       result = service.create_page(title, content, space_key)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_confluence_service.py:111: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;app.services.confluence_service.ConfluenceService object at 0x000002C72E3FFB10&gt;
+title = 'Authored Page'
+content = '&lt;p&gt;&lt;strong&gt;Author:&lt;/strong&gt; John Doe&lt;/p&gt;\n&lt;p&gt;Page content with author&lt;/p&gt;'
+space_key = 'TEST', parent_id = None
+
+    def create_page(self, title: str, content: str, space_key: str, parent_id: Optional[str] = None) -&gt; Dict[str, Any]:
+        """
+        Create a new Confluence page.
+    
+        Args:
+            title: Title of the page
+            content: HTML content of the page
+            space_key: Space key where the page will be created
+            parent_id: Optional parent page ID
+    
+        Returns:
+            Dictionary with page ID and URL
+        """
+        try:
+            if not self.confluence_token:
+                raise ValueError("Confluence token not configured")
+    
+            # Prepare page data
+            page_data = {
+                "type": "page",
+                "title": title,
+                "space": {"key": space_key},
+                "body": {
+                    "storage": {
+                        "value": content,
+                        "representation": "storage"
+                    }
+                }
+            }
+    
+            # Add parent page reference if provided
+            if parent_id:
+                page_data["ancestors"] = [{"id": parent_id}]
+    
+            # Create the page
+            response = self.session.post(
+                f"{self.api_base_url}/content",
+                json=page_data
+            )
+    
+            if response.status_code not in (200, 201):
+                logger.error(f"Error creating page: HTTP {response.status_code}: {response.text}")
+&gt;               raise ValueError(f"Failed to create page: HTTP {response.status_code}")
+E               ValueError: Failed to create page: HTTP &lt;MagicMock name='requests.Session().post().status_code' id='3054498980464'&gt;
+
+app\services\confluence_service.py:272: ValueError</failure></testcase></testsuite></testsuites>

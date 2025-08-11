@@ -1,0 +1,274 @@
+logical_tables:
+  - name: interested_customers
+    table: corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_interested_customers
+    dimensions:
+      - name: ContextID
+        expr: ContextID
+        data_type: varchar
+        description: Unique context identifier
+      - name: feature_key
+        expr: feature_key
+        data_type: varchar
+        description: Feature key of interest
+      - name: interested
+        expr: interested
+        data_type: varchar
+        description: Interested customer indicator
+
+  - name: general_population
+    table: corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_general_population_customers
+    dimensions:
+      - name: ContextID
+        expr: ContextID
+        data_type: varchar
+      - name: feature_key
+        expr: feature_key
+        data_type: varchar
+      - name: interested
+        expr: interested
+        data_type: varchar
+
+  - name: voc_customers
+    table: corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_voc_customers
+    dimensions:
+      - name: ContextID
+        expr: ContextID
+        data_type: varchar
+      - name: feature_key
+        expr: feature_key
+        data_type: varchar
+      - name: interested
+        expr: interested
+        data_type: varchar
+
+  - name: customer_dimensions
+    table: corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_customer_dimentions
+    dimensions:
+      - name: ContextID
+        expr: ContextID
+        data_type: varchar
+        description: "This is the primary key and there should never be a filter on this column. It will always be text"
+        no_filter: true
+      - name: Account_Name
+        expr: Account_Name
+        data_type: varchar
+        description: "This is the name of the account and there should never be a filter on this column. It will always be text"
+        no_filter: true
+      - name: CSM_Tier
+        expr: CSM_Tier
+        data_type: varchar
+        description: "This is the size of an account"
+        examples: ["Small Group", "Group", "Enterprise", "Hospital"]
+      - name: CS_Team
+        expr: CS_Team
+        data_type: varchar
+        description: "This is the type of cs team that supports the client"
+        examples: ["Small Group", "Small Group - Specialist", "Small Group - 1st Year Live", "Group", "Enterprise", "Top 25 Client", "Hospital", "Standalone Coordinator"]
+      - name: Specialty
+        expr: Specialty
+        data_type: varchar
+        description: "This is the type of provider and has multiple values"
+        examples: ["Family Practice", "Multi Specialty", "Internal Medicine"]
+      - name: Client_Relationship_Type
+        expr: Client_Relationship_Type
+        data_type: varchar
+        description: "This will have multiple different text results"
+        examples: ["Patient Safety", "Emergency Messaging", "Clinical Performance Beta Coordinator", "Rev Cycle Beta Coordinator"]
+      - name: Full_Name
+        expr: Full_Name
+        data_type: varchar
+        description: "This is the name of the user within a context and will always be text"
+        no_filter: true
+      - name: Email
+        expr: Email
+        data_type: varchar
+        description: "This is the email of the user within a context and will always be text"
+        no_filter: true
+      - name: User_ID
+        expr: User_ID
+        data_type: varchar
+        description: "This is the user id of the user within a context and will always be text"
+        no_filter: true
+      - name: CSM_Name
+        expr: CSM_Name
+        data_type: varchar
+        description: "This is the name of the customer success manager supporting the context"
+        no_filter: true
+      - name: CSM_Email
+        expr: CSM_Email
+        data_type: varchar
+        description: "This is the email of the customer success manager supporting the context"
+        no_filter: true
+      - name: NPS_Status
+        expr: NPS_Status
+        data_type: varchar
+        description: "This column will only ever be Promoter, Detractor, or Passive"
+        examples: ["Promoter", "Detractor", "Passive"]
+      - name: Time_Zone
+        expr: Time_Zone
+        data_type: varchar
+        description: "This is the time zone of the context and is formatted as Central Standard Time (CST)"
+        examples: ["Central Standard Time (CST)", "Eastern Standard Time (EST)", "Pacific Standard Time (PST)"]
+      - name: Billing_State
+        expr: Billing_State
+        data_type: varchar
+        description: "This is the billing state of the context and will always be the two letter abbreviation"
+        examples: ["MA", "CA", "TX", "NY"]
+      - name: Alpha_Beta_Status
+        expr: Alpha_Beta_Status
+        data_type: varchar
+        description: "This is the eligibility of a context to participate in alpha or beta tests"
+        examples: ["Can Contact Client Directly", "Contact Account Manager First", "CSM Sends Alpha/Beta Invites"]
+      - name: Clinicals_Status
+        expr: Clinicals_Status
+        data_type: varchar
+        description: "This is a context's status with our clinicals product"
+        examples: ["Live"]
+      - name: Collector_Status
+        expr: Collector_Status
+        data_type: varchar
+        description: "This is a context's status with our collector product"
+        examples: ["Live", "Pre-Live", "Chargeback"]
+      - name: Communicator_Status
+        expr: Communicator_Status
+        data_type: varchar
+        description: "This is a context's status with our communicator product"
+        examples: ["Live"]
+      - name: Hospital_Clinicals_Status
+        expr: Hospital_Clinicals_Status
+        data_type: varchar
+        description: "This is a context's status with our hospital clinicals product (different than standard clinicals)"
+        examples: ["Live"]
+      - name: Hospital_Collector_Status
+        expr: Hospital_Collector_Status
+        data_type: varchar
+        description: "This is a context's status with our hospital collector product (different than standard collector)"
+        examples: ["Live"]
+      - name: Hospital_Communicator_Status
+        expr: Hospital_Communicator_Status
+        data_type: varchar
+        description: "This is a context's status with our hospital communicator product (different than standard communicator)"
+        examples: ["Live"]
+      - name: Telehealth_Status
+        expr: Telehealth_Status
+        data_type: varchar
+        description: "This is a context's status with our telehealth product"
+        examples: ["Live"]
+      - name: Authorization_Management_Service_Status
+        expr: Authorization_Management_Service_Status
+        data_type: varchar
+        description: "This is a context's status with our authorization management service"
+        examples: ["Live"]
+      - name: parent_account_id_full__c
+        expr: parent_account_id_full__c
+        data_type: varchar
+        description: "This is the context's parent account"
+        no_filter: true
+      - name: Customer_Parent_Account_Context_ID
+        expr: Customer_Parent_Account_Context_ID
+        data_type: varchar
+        description: "This is the context's parent account context id"
+        no_filter: true
+      - name: Focus
+        expr: Focus
+        data_type: varchar
+        description: "This is the focus of a context"
+        examples: ["Direct Primary Care", "FQHC", "Urgent Care", "Free Clinic"]
+      - name: Client_Advocate
+        expr: Client_Advocate
+        data_type: varchar
+        description: "Client advocate information"
+        no_filter: true
+      - name: Billable_Providers
+        expr: Billable_Providers
+        data_type: number
+        description: "Number of billable providers a context has and will always be a number"
+      - name: CSM_Response
+        expr: CSM_Response
+        data_type: varchar
+        description: "The response from the CSM on if we can solicit interest"
+        no_filter: true
+      - name: OptIn_Out
+        expr: OptIn_Out
+        data_type: varchar
+        description: "This is if a context has opted in or out of the alpha beta wave"
+        no_filter: true
+      - name: Recruitment_Method
+        expr: Recruitment_Method
+        data_type: varchar
+        description: "This is how the invite list was generated"
+        no_filter: true
+      - name: RUN_BY
+        expr: RUN_BY
+        data_type: varchar
+      - name: RUN_AT
+        expr: RUN_AT
+        data_type: timestamp_ntz
+      - name: feature_key
+        expr: feature_key
+        data_type: varchar
+        description: "This is the feature that will be mentioned by the user and utilized to identify contexts who are in the interest funnel"
+        examples: ["feature-1234", "feature-XXXX"]
+      - name: interested
+        expr: interested
+        data_type: varchar
+        description: "This indicates if the row is for a feature that a context is interested in. 1 for interested and 0 for no specific feature"
+        examples: ["1", "0"]
+
+  - name: previously_invited
+    table: corpanalytics_business_prod.scratchpad_prdpf.alpha_beta_previously_invited_contexts
+    dimensions:
+      - name: ContextID
+        expr: ContextID
+        data_type: varchar
+      - name: feature_key
+        expr: feature_key
+        data_type: varchar
+
+relationships:
+  - name: interested_to_dimensions
+    left_table: interested_customers
+    right_table: customer_dimensions
+    relationship_columns:
+      - left_column: ContextID
+        right_column: ContextID
+    join_type: left_outer
+    relationship_type: many_to_one
+
+  - name: general_to_dimensions
+    left_table: general_population
+    right_table: customer_dimensions
+    relationship_columns:
+      - left_column: ContextID
+        right_column: ContextID
+    join_type: left_outer
+    relationship_type: many_to_one
+
+  - name: voc_to_dimensions
+    left_table: voc_customers
+    right_table: customer_dimensions
+    relationship_columns:
+      - left_column: ContextID
+        right_column: ContextID
+    join_type: left_outer
+    relationship_type: many_to_one
+
+  - name: invited_to_dimensions
+    left_table: previously_invited
+    right_table: customer_dimensions
+    relationship_columns:
+      - left_column: ContextID
+        right_column: ContextID
+    join_type: left_outer
+    relationship_type: many_to_one
+
+  - name: interested_to_invited
+    left_table: interested_customers
+    right_table: previously_invited
+    relationship_columns:
+      - left_column: ContextID
+        right_column: ContextID
+      - left_column: feature_key
+        right_column: feature_key
+    join_type: left_outer
+    relationship_type: many_to_one

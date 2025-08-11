@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POIA Tools Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            background-color: #0078d4;
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        .subtitle {
+            margin-top: 0.5rem;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #0078d4;
+            font-size: 1.5rem;
+        }
+        .card p {
+            color: #666;
+            line-height: 1.6;
+        }
+        .card a {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.7rem 1.2rem;
+            background-color: #0078d4;
+            color: white;
+            text-decoration: none;
+            border-radius: 0.3rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .card a:hover {
+            background-color: #005a9e;
+        }
+        footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>POIA Tools Dashboard</h1>
+            <div class="subtitle">All your essential tools in one place</div>
+        </header>
+        
+        <div class="cards">
+            <div class="card">
+                <h2>Alpha/Beta Command Center</h2>
+                <p>Alpha Beta Command Center for monitoring and managing your operations dashboard.</p>
+                <a href="http://10.4.74.143:3000">Access Command Center</a>
+            </div>
+            
+            <div class="card">
+                <h2>Ask Amy</h2>
+                <p>RAG-powered chatbot using Snowflake and Claude 3.5 Sonnet to answer questions from Confluence content.</p>
+                <a href="http://10.4.74.143:5002">Open Ask Amy</a>
+            </div>
+            
+            <div class="card">
+                <h2>List Generator V2</h2>
+                <p>Enhanced list generation tool with advanced SQL testing capabilities.</p>
+                <a href="http://10.4.74.143:3001">Launch List Gen V2</a>
+            </div>
+            
+            <div class="card">
+                <h2>PPT Generator</h2>
+                <p>Create PowerPoint presentations with multiple templates including Boulder Executive Updates and Deep Dive presentations.</p>
+                <a href="http://10.4.74.143:8000">Open PPT Generator</a>
+            </div>
+            
+            <div class="card">
+                <h2>CORA</h2>
+                <p>Configuration & Onboarding Resource Assistant - a service chatbot with self-serve admin management functionality and authentication.</p>
+                <a href="http://10.4.74.143:5001">Access CORA</a>
+            </div>
+            
+            <div class="card">
+                <h2>HTML Prototype Bot</h2>
+                <p>Interactive Streamlit application for creating and testing HTML prototypes with real-time preview capabilities.</p>
+                <a href="http://10.4.74.143:8501">Launch Prototype Bot</a>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2025 POIA Tools - For internal use only</p>
+        </footer>
+    </div>
+</body>
+</html>

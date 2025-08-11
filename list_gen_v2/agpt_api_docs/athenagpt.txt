@@ -1,0 +1,89 @@
+athenaGPT public API
+athenaGPT was initially developed with an API that supports the athenaGPT user interface found at http://go/athenagpt
+However, this API is intended for internal use only and is not publicly available. Due to the growing interest from various teams at athenahealth to utilize the athenaGPT APIs for internal AI applications, we have created a new public API specifically for athenaGPT.
+Reasons for Creating a Public API and Application Management
+1.	We can discuss and explore different use cases and prioritize features based on the needs of other teams within our company, providing them with access to the desired functionalities.
+2.	We can authenticate and authorize these applications, granting them access to various APIs and capabilities as needed.
+3.	We can monitor the usage of the API by each application and analyze the data to make informed decisions based on costs and key performance indicators (KPIs).
+4.	It is fully compatible with existing openai libraries, including official libraries and tools like langchain.
+5.	We also have the ability to create custom API endpoints on a case-by-case basis, offering unique functionalities based on specific application requirements.
+Getting Started
+1.	As a general rule of thumb, we support internal-only use cases that have executive sponsorship, and have ROI or have the potential to have ROI in case of proof of concepts. All use cases that potentially will go to our customer or into one of athena's products need to be using go/metis. These include Hackathon and Codefest use cases. If you think your use case fits the bill for athenaGPT API access, read this page and fill the form embedded within. Srikanth Panaman and Nishant Jichkar will review and enable your access.
+2.	Once you have an app registered and are listed as the owner, go to the 'App management' page on athenaGPT. Select your app and create a new API key secret.
+3.	These API keys are generated only once, so make sure to copy and securely store them on your end. We do not have access to your API keys and can only validate them for authentication purposes.
+4.	Treat the API keys as securely as you would a password.
+5.	Develop your own backend application to utilize the athenaGPT APIs with the following information: 
+1.	To use the custom APIs: 
+1.	Utilize the API endpoints listed in our swagger documents found here: https://athenagpt.tools.athenahealth.com/api
+2.	Authenticate your requests by including a `api-key` header, where you should provide the secret generated earlier from the Applications Management page.
+2.	To use with openai libraries and tools: 
+1.	Use the 'Azure OpenAI' option whenever applicable in the library or tool.
+2.	For the API base URL, use: https://athenagpt.tools.athenahealth.com/api/public/oai
+3.	For the API key, use the same API key generated from the Applications Management page.
+Where can I find API documentation for the openai API:
+You can refer to the API documentations available in Open AI website and the Azure OpenAI website for how to use different APIs. 
+1.	OpenAI - https://platform.openai.com/docs/api-reference
+2.	Azure OpenAI - https://learn.microsoft.com/en-us/azure/ai-services/openai/reference
+For documentations on other tools such as the npm package used in the example below, or for any other SDKs and libraries please refer to the tool's own documentations on how to use them.
+Example script using openai NPM package to develop a Node.js application using athenaGPT APIs:
+Sample script in python using 'openai' python package 
+from openai import AzureOpenAI
+
+client = AzureOpenAI(
+    api_version='2025-01-01-preview',
+    api_key='<set_your_api_key_here>',
+    azure_endpoint="https://athenagpt-uat.tools.athenahealth.com/api/public/oai",
+)
+
+completion = client.chat.completions.create(
+    model='gpt-4o-mini-2024-07-18',
+    messages=[
+        {
+            "role": "user",
+            "content": "How do I output all files in a directory using Python?",
+        },
+    ],
+)
+print(completion.to_json())
+Sample script in python using langchain 
+from langchain_openai import AzureChatOpenAI
+from langchain_core.messages import HumanMessage, SystemMessage
+
+model = AzureChatOpenAI(
+    azure_endpoint='https://athenagpt-uat.tools.athenahealth.com/api/public/oai',
+    api_key='<set_your_api_key_here>',
+    azure_deployment='gpt-4o-mini-2024-07-18',
+    openai_api_version='2025-01-01-preview',
+)
+
+messages = [
+    SystemMessage("Translate the following from English into Italian"),
+    HumanMessage("hi!"),
+]
+
+print(model.invoke(messages))
+Sample script in node.js using 'openai' npm package 
+import { AzureOpenAI } from 'openai';
+
+const openAIClient = new AzureOpenAI({
+  baseURL: 'https://athenagpt-uat.tools.athenahealth.com/api/public/oai' + '/openai'
+  apiKey: <set_your_api_key_here>,
+  apiVersion: '2025-01-01-preview'
+});
+
+openAIClient.chat.completions
+  .create({
+    messages: [{ role: 'user', content: 'Tell me a joke' }],
+    model: 'gpt-4o-mini-2024-07-18'
+  })
+  .then((response) => console.log(response));
+
+Frequently asked questions:
+1.	Can I use the API from a UI only application, making calls from the browser? 
+1.	No. Since this is an authenticated API, where you need to send us an API key for reach request, we can only access these APIs from a backend application.
+2.	Should I create different app registrations for each use cases? 
+1.	Ideally yes. If you would like to tie usage metrics and access control for different use cases with differerent apps, it is recommended to create different app registrations.
+3.	Will there be a way to see my usage and other metrics? 
+1.	In the future, yes. We are already going to be tracking usage. There is currently no way to consume the usage details easily. There will be a way to do so in the future.
+4.	Can I use this API for building anything that is not internal? 
+1.	No. This API is only meant for building internal tools and applications. It can be used to build tools and integrations that can solve internal use cases. For anything to do with the product, please refer to the Metis platform.

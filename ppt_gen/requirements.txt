@@ -1,0 +1,9 @@
+Flask>=3.0
+Werkzeug>=3.0
+python-pptx>=0.6.21
+pandas>=2.0
+snowflake-connector-python>=3.5
+pywin32>=306
+Flask-Bcrypt
+Flask-Login
+openpyxl>=3.1.0

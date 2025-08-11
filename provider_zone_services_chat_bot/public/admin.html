@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Admin – PDF Document Management</title>
+    <style>
+        body{font-family:Arial,Helvetica,sans-serif;margin:40px;background:#fafafa;color:#333}
+        h2{color:#0066cc}
+        h3{margin-top:30px}
+        #log{white-space:pre-line;border:1px solid #ccc;padding:10px;background:#fff;height:200px;overflow:auto;margin-bottom:20px}
+        form{margin-bottom:20px;padding:15px;background:#f0f5ff;border-radius:4px}
+        button{background:#0066cc;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer}
+        button:hover{background:#0055aa}
+        #fileList{list-style:none;padding:0}
+        #fileList li{padding:10px;margin:10px 0;background:#fff;border:1px solid #ddd;border-radius:4px}
+        .file-row{display:flex;justify-content:space-between;align-items:center}
+        .file-name{font-weight:bold;flex-grow:1}
+        .file-actions{display:flex;gap:8px}
+        .view-btn{background:#17a2b8}
+        .view-btn:hover{background:#138496}
+        .reprocess-btn{background:#0066cc}
+        .remove-btn{background:#dc3545}
+        .remove-btn:hover{background:#c82333}
+        .document-text-container{margin-top:10px;padding:10px;border-top:1px solid #eee;max-height:400px;overflow-y:auto;font-size:14px;line-height:1.5}
+        .document-text-loading{color:#666;font-style:italic}
+        .document-text{white-space:pre-wrap}
+        .status-new{color:#28a745}
+        .status-reprocess{color:#ffc107}
+        .status-processing{color:#17a2b8}
+        .loading{margin-left:10px;display:inline-block}
+        .spinner{display:inline-block;width:20px;height:20px;border:3px solid rgba(0,0,0,0.1);border-radius:50%;border-top-color:#0066cc;animation:spin 1s ease-in-out infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .hidden{display:none}
+    </style>
+</head>
+<body>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h2>Admin – Document Management</h2>
+    <a href="/" style="background:#0066cc; color:white; padding:8px 16px; border-radius:4px; text-decoration:none; display:inline-flex; align-items:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" style="margin-right:5px; fill:currentColor;">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+        Home
+    </a>
+</div>
+<form id="uploader" enctype="multipart/form-data">
+  <h3>Upload New Document</h3>
+  <input type="file" name="pdf" accept="application/pdf" required>
+  <button type="submit">Upload Document</button>
+  <div id="uploadStatus" class="hidden">
+    <div class="spinner"></div>
+    <span>Processing...</span>
+  </div>
+</form>
+
+<div id="logSection">
+  <h3>Processing Log</h3>
+  <pre id="log"></pre>
+</div>
+
+<div id="currentDocuments">
+  <h3>Current Documents</h3>
+  <div id="documentsLoading">
+    <div class="spinner"></div>
+    <span>Loading documents...</span>
+  </div>
+  <ul id="fileList"></ul>
+</div>
+
+<div id="adminManagement">
+  <h3>Admin Management</h3>
+  <form id="addAdminForm">
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+      <input type="text" id="newAdminUsername" placeholder="Username" required style="flex: 1; padding: 8px;">
+      <button type="submit" style="background:#28a745;">Add Admin</button>
+    </div>
+  </form>
+  
+  <div id="adminsLoading">
+    <div class="spinner"></div>
+    <span>Loading admin list...</span>
+  </div>
+  
+  <ul id="adminList" style="list-style:none; padding:0;"></ul>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
